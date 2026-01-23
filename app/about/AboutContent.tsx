@@ -2,8 +2,6 @@
 
 import { motion } from "framer-motion";
 import ReactMarkdown, { Components } from "react-markdown";
-import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
 import { CMSSection, TeamMember } from "@/lib/cms";
 
 interface AboutContentProps {

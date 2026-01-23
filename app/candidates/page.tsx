@@ -1,8 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
@@ -49,9 +47,7 @@ const candidates = [
 
 export default function Candidates() {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navigation />
-      
+    <>
       <main className="flex-grow pt-32 pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -114,8 +110,6 @@ export default function Candidates() {
           </div>
         </div>
       </main>
-      
-      <Footer />
-    </div>
+    </>
   );
 }

@@ -4,8 +4,6 @@ import { useActionState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle, Send } from "lucide-react";
 
-import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
 import { submitContactForm, type ContactFormState } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
