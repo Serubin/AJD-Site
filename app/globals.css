@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* HSL Conversions for #081939 (219 75% 13%) and neutrals */
+  --background: 219 75% 13%; /* Deep Blue #081939 */
+  --foreground: 210 40% 98%; /* White-ish */
+
+  --card: 219 65% 18%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 219 75% 13%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 203 89% 53%; /* #1DA1F2 */
+  --primary-foreground: 219 75% 13%;
+
+  --secondary: 217 33% 25%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217 33% 22%;
+  --muted-foreground: 215 20% 65%;
+
+  --accent: 203 89% 53%;
+  --accent-foreground: 219 75% 13%;
+
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217 33% 25%;
+  --input: 217 33% 25%;
+  --ring: 203 89% 53%;
+
+  --radius: 0.25rem;
+  
+  --font-serif: 'Merriweather', serif;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Playfair Display', serif;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Custom Selection Color */
+::selection {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
