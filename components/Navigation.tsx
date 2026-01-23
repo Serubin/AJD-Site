@@ -5,14 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-export function Navigation() {
+export function Navigation({ links }: { links: { href: string; label: string }[] }) {
   const pathname = usePathname();
-
-  const links = [
-    { href: "/about", label: "About" },
-    { href: "/candidates", label: "Candidates" },
-    { href: "/get-involved", label: "Get Involved" },
-  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center py-6 px-4 bg-background/80 backdrop-blur-md border-b border-white/10">

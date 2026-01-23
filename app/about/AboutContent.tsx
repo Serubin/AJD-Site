@@ -50,9 +50,7 @@ const markdownComponents: Components = {
 
 export default function AboutContent({ sections, teamMembers }: AboutContentProps) {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navigation />
-      
+    <>
       <main className="flex-grow pt-32 pb-20 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <motion.div
@@ -107,8 +105,6 @@ export default function AboutContent({ sections, teamMembers }: AboutContentProp
           </motion.div>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </>
   );
 }

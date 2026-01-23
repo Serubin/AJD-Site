@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Navigation } from "@/components/Navigation";
 
 export default function HomeComponent({ tagline }: { tagline: string }) {
   const containerVariants = {
@@ -27,9 +26,7 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <Navigation />
-
+    <>
       <main className="flex-grow pt-32 pb-20 px-4 sm:px-6">
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background pointer-events-none" />
@@ -77,7 +74,7 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
                 Our Mission
               </Button>
             </Link>
-            <Link href="/get-involved">
+            <Link href="/get-involved" className="hidden sm:block">
               <Button size="lg" className="w-full sm:w-auto min-w-[160px] bg-primary hover:bg-primary/90 text-background font-bold tracking-wide shadow-lg shadow-primary/20">
                 Get Involved
               </Button>
@@ -85,6 +82,6 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
           </motion.div>
         </motion.div>
       </main>
-    </div>
+    </>
   );
 }

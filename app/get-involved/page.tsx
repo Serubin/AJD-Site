@@ -46,9 +46,7 @@ export default function GetInvolved() {
   }, [state, toast]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navigation />
-      
+    <>
       <main className="flex-grow pt-32 pb-20 px-4 sm:px-6 flex items-center justify-center">
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
@@ -182,8 +180,6 @@ export default function GetInvolved() {
 
         </div>
       </main>
-      
-      <Footer />
-    </div>
+    </>
   );
 }
