@@ -33,8 +33,14 @@ interface CMSResponse {
   };
 }
 
-const CMS_API_URL =
-  "https://nocodb.serubin.net/api/v2/tables/mz9n3xdqhpjy3m4/records?offset=0&limit=25&where=&viewId=vwpcd9cm382r3t2r";
+const CMS_API_URL = [
+  "https://",
+  process.env.CMS_API_BASE_URL,
+  "/api/v2/tables/",
+  process.env.CMS_API_TABLE_ID,
+  "/records?offset=0&limit=50&where=&viewId=",
+  process.env.CMS_API_VIEW_ID,
+].join("");
 
 async function fetchCMSData(): Promise<CMSResponse> {
   const res = await fetch(CMS_API_URL, {
