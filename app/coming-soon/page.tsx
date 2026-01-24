@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from "framer-motion";
+import CenterCircleGradient from "@/components/CenterCircleGradient";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -14,11 +15,12 @@ const itemVariants = {
 export default function ComingSoon() {
   return (
     <div className="min-h-screen bg-[#081939] flex flex-col items-center justify-center p-4 text-center">
+      <CenterCircleGradient />
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
-        className="max-w-md w-full"
+        className="relative z-10 max-w-md w-full"
       >
         <motion.h1
             variants={itemVariants}
