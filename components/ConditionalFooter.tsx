@@ -3,10 +3,12 @@
 import { usePathname } from "next/navigation";
 import { Footer } from "./Footer";
 
-export function ConditionalFooter({ tagline }: { tagline: string}) {
+const HIDDEN_PATHS = ["/", "/coming-soon"];
+
+export function ConditionalFooter({ tagline }: { tagline: string }) {
   const pathname = usePathname();
 
-  if (pathname === "/") {
+  if (HIDDEN_PATHS.includes(pathname)) {
     return null;
   }
 
