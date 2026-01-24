@@ -1,6 +1,11 @@
 name: Build Docker Image
 on:
   pull_request:
+    paths-ignore:
+      - ".github/**"
+      - "*.md"
+      - ".gitignore"
+      - ".nvmrc"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
