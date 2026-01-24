@@ -2,18 +2,31 @@ name: Build and Publish Docker Image
 on:
   push:
     branches: ["main"]
-    paths-ignore:
-      - ".github/**"
-      - "*.md"
-      - ".gitignore"
-      - ".nvmrc"
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - '!.github/**'
+              - '!*.md'
+              - '!.gitignore'
+              - '!.nvmrc'
+
   build-and-push-image:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
 
     permissions:

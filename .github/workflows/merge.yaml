@@ -1,11 +1,6 @@
 name: Build Docker Image
 on:
   pull_request:
-    paths-ignore:
-      - ".github/**"
-      - "*.md"
-      - ".gitignore"
-      - ".nvmrc"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,7 +10,25 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - '!.github/**'
+              - '!*.md'
+              - '!.gitignore'
+              - '!.nvmrc'
+
   build-image:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
