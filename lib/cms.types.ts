@@ -14,12 +14,6 @@ export interface CMSSection {
   parsed: unknown;
 }
 
-export interface TeamMember {
-  name: string;
-  title: string;
-  photo?: string;
-}
-
 export interface CMSResponse {
   list: CMSRecord[];
   pageInfo: {
@@ -29,4 +23,12 @@ export interface CMSResponse {
     isFirstPage: boolean;
     isLastPage: boolean;
   };
+}
+
+
+// About Page
+export interface TeamMember {
+  name: string;
+  title: string;
+  photo?: string;
 }

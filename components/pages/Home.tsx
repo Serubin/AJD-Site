@@ -6,7 +6,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import CenterCircleGradient from '@/components/CenterCircleGradient';
 
-export default function HomeComponent({ tagline }: { tagline: string }) {
+export type HomePageProps = {
+  tagline: string;
+}
+
+export default function HomePage({ tagline }: HomePageProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
