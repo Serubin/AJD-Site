@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import CenterCircleGradient from '@/components/CenterCircleGradient';
 
 export default function HomeComponent({ tagline }: { tagline: string }) {
   const containerVariants = {
@@ -28,9 +29,7 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
   return (
     <>
       <main className="flex-grow px-4 sm:px-6">
-        {/* Abstract Background Elements */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background pointer-events-none" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <CenterCircleGradient />
 
         <motion.div
           variants={containerVariants}
