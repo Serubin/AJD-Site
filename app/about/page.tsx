@@ -9,7 +9,7 @@ export default async function About() {
     notFound();
   }
 
-  const teamMembers = (sections["Team"]?.parsed as TeamMember[]) ?? [];
+  const teamMembers = (sections.Team?.parsed as TeamMember[]) ?? [];
 
   return <AboutContent sections={sections} teamMembers={teamMembers} />;
 }
