@@ -1,37 +1,10 @@
 import YAML from "yaml";
+import type { ContentType, CMSSection, CMSResponse } from "./cms.types";
 
-type ContentType = "markdown" | "yaml" | "json";
+// Re-export public types for consumers
+export type { CMSSection, TeamMember } from "./cms.types";
 
-interface CMSRecord {
-  Id: number;
-  Page: string;
-  Sub: string;
-  Type: ContentType;
-  Content: string;
-}
-
-export interface CMSSection {
-  type: ContentType;
-  raw: string;
-  parsed: unknown;
-}
-
-export interface TeamMember {
-  name: string;
-  title: string;
-  photo?: string;
-}
-
-interface CMSResponse {
-  list: CMSRecord[];
-  pageInfo: {
-    totalRows: number;
-    page: number;
-    pageSize: number;
-    isFirstPage: boolean;
-    isLastPage: boolean;
-  };
-}
+const TTL = process.env.NODE_ENV === "production" ? 60 * 60 : 0;
 
 const CMS_API_URL = [
   "https://",
