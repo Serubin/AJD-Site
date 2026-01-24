@@ -27,7 +27,7 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
 
   return (
     <>
-      <main className="flex-grow pt-32 pb-20 px-4 sm:px-6">
+      <main className="flex-grow px-4 sm:px-6">
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background pointer-events-none" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -36,7 +36,7 @@ export default function HomeComponent({ tagline }: { tagline: string }) {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="relative z-10 flex flex-col items-center justify-center text-center mt-[25%]"
+          className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 text-center"
         >
           <motion.div variants={itemVariants} className="mb-12">
             <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center mb-8 shadow-2xl mx-auto hidden">
