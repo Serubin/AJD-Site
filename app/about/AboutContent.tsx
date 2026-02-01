@@ -3,48 +3,14 @@
 import { motion } from "framer-motion";
 import ReactMarkdown, { Components } from "react-markdown";
 import { CMSSection, TeamMember } from "@/lib/cms";
+import { Markdown } from '@/components/MarkdownWrapper';
 
 interface AboutContentProps {
   sections: Record<string, CMSSection>;
   teamMembers: TeamMember[];
 }
 
-const listVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
 
-const itemVariants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 },
-};
-
-const markdownComponents: Components = {
-  ul: ({ children }) => (
-    <motion.ul
-      className="grid pl-1 border-l-2 border-primary/20 my-1 list-none"
-      variants={listVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-    >
-      {children}
-    </motion.ul>
-  ),
-  li: ({ children }) => (
-    <motion.li
-      variants={itemVariants}
-      className="flex items-center gap-3 text-white"
-    >
-      <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-      <span>{children}</span>
-    </motion.li>
-  ),
-};
 
 export default function AboutContent({ sections, teamMembers }: AboutContentProps) {
   return (
@@ -56,15 +22,12 @@ export default function AboutContent({ sections, teamMembers }: AboutContentProp
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-8 border-b border-primary/30 pb-6">
-              Our Mission
-            </h1>
             
             <div className="space-y-8 text-lg text-muted-foreground font-serif leading-relaxed">
                 <div className="prose prose-invert prose-lg max-w-none">
-                  <ReactMarkdown components={markdownComponents}>
+                  <Markdown>
                     {sections["About"]?.raw ?? ""}
-                  </ReactMarkdown>
+                  </Markdown>
                 </div>
             </div>
 
