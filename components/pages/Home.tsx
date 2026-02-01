@@ -41,25 +41,19 @@ export default function HomePage({ tagline }: HomePageProps) {
           animate="visible"
           className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 text-center"
         >
-          <motion.div variants={itemVariants} className="mb-12">
-            <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center mb-8 shadow-2xl mx-auto hidden">
-              <Image
-                src="/images/logo.png"
-                alt="AJD Logo"
-                width={192}
-                height={192}
-                className="w-3/4 h-3/4 object-contain opacity-90"
-              />
-            </div>
-          </motion.div>
-
-          <motion.h1
+          <motion.div
             variants={itemVariants}
-            className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-white mb-6 tracking-tight leading-tight"
+            className="mb-6 w-full flex justify-center"
           >
-            American Jews <br/>
-            <span className="text-primary italic font-serif text-3xl md:text-5xl lg:text-6xl">for</span> Democracy
-          </motion.h1>
+            <motion.img
+              src="/images/logo.svg"
+              alt="American Jews for Democracy Logo"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="max-w-m w-[340px] sm:w-[400px] md:w-[480px] h-auto"
+            />
+          </motion.div>
 
           <motion.p
             variants={itemVariants}

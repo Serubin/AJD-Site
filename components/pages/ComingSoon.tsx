@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import CenterCircleGradient from '../CenterCircleGradient';
 
@@ -26,13 +27,19 @@ export default function ComingSoonPage({ tagline }: ComingSoonPageProps) {
         transition={{ duration: 0.8 }}
         className="relative z-10 max-w-md w-full"
       >
-        <motion.h1
+        <motion.div
             variants={itemVariants}
-            className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-white mb-6 tracking-tight leading-tight"
+            className="mb-6 w-full flex justify-center"
           >
-            American Jews <br/>
-            <span className="text-primary italic font-serif text-3xl md:text-5xl lg:text-6xl">for</span> Democracy
-          </motion.h1>
+            <motion.img
+              src="/images/logo.svg"
+              alt="American Jews for Democracy Logo"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-[340px] sm:w-[400px] md:w-[480px] h-auto"
+            />
+          </motion.div>
 
         <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
           Coming Soon
