@@ -7,7 +7,7 @@ import { ConditionalFooter } from '@/components/ConditionalFooter';
 
 export async function generateMetadata(): Promise<Metadata> {
   const homeContent = await getPageContent("Home");
-  const tagline = homeContent["Tagline"]?.raw ?? "";
+  const tagline = homeContent.Tagline?.raw ?? "";
   return {
     title: "American Jews for Democracy",
     description: tagline,
@@ -20,8 +20,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const homeContent = await getPageContent("Home");
-  const tagline = homeContent["Tagline"]?.raw ?? "";
-  const links = homeContent["Navigation"]?.parsed as { href: string; label: string }[];
+  const tagline = homeContent.Tagline?.raw ?? "";
+  const links = (homeContent.Navigation?.parsed as { href: string; label: string }[]) ?? [];
 
   return (
     <html lang="en">
