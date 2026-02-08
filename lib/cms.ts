@@ -20,7 +20,7 @@ async function fetchCMSData(): Promise<CMSResponse> {
     headers: {
       "xc-token": process.env.NOCODB_API_TOKEN!,
     },
-    next: { revalidate: 0 }, // Cache for 1 hour
+    next: { revalidate: TTL },
   });
 
   if (!res.ok) {
