@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0}>
       <Toaster />
       {children}
     </TooltipProvider>
