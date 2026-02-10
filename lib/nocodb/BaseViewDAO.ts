@@ -75,4 +75,14 @@ export abstract class BaseViewDAO {
       revalidate: this.ttl > 0 ? this.ttl : false,
     })();
   }
+
+  /**
+   * Create a new record in the NocoDB table.
+   */
+  protected async createRecord<T = Record<string, unknown>>(
+    data: Record<string, unknown>
+  ): Promise<T> {
+    const response = await this.api.dbDataTableRow.create(this.tableId, data);
+    return response as unknown as T;
+  }
 }
