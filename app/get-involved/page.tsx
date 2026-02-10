@@ -1,10 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle, Send } from "lucide-react";
 
-import { submitContactForm, type ContactFormState } from "@/app/actions";
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from "@/lib/csrf";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -13,36 +13,86 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StateMultiSelect } from "@/components/StateMultiSelect";
 import { CongressionalDistrictInput } from "@/components/pages/getInvolved/CongressionalDistrictInput";
-import { useEffect, useRef } from "react";
 
-const initialState: ContactFormState = {
-  success: false,
-  message: "",
-};
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  states?: string;
+  congressionalDistrict?: string;
+}
 
 export default function GetInvolved() {
   const { toast } = useToast();
-  const [state, formAction, isPending] = useActionState(submitContactForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [resetKey, setResetKey] = useState(0);
 
-  useEffect(() => {
-    if (state.message) {
-      if (state.success) {
-        toast({
-          title: "Message Sent!",
-          description: state.message,
-          className: "bg-green-900 border-green-800 text-white",
-        });
-        formRef.current?.reset();
-      } else if (state.message !== "Validation failed") {
-        toast({
-          title: "Submission Failed",
-          description: state.message,
-          variant: "destructive",
-        });
-      }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrors({});
+    setIsPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const states = formData.getAll("states") as string[];
+    const congressionalDistrict = formData.get("congressionalDistrict") as string;
+
+    // Client-side validation
+    const newErrors: FormErrors = {};
+    if (!name?.trim()) newErrors.name = "Name is required";
+    if (!email?.trim()) newErrors.email = "Email is required";
+    if (!phone?.trim()) newErrors.phone = "Phone number is required";
+    if (states.length === 0) newErrors.states = "At least one state is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsPending(false);
+      return;
     }
-  }, [state, toast]);
+
+    const csrfToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${CSRF_COOKIE_NAME}=`))
+      ?.split("=")[1];
+
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [CSRF_HEADER_NAME]: csrfToken ?? "",
+        },
+        body: JSON.stringify({ name, email, phone, states, congressionalDistrict }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to sign up");
+      }
+
+      setSuccess(true);
+      setResetKey((k) => k + 1);
+      formRef.current?.reset();
+      toast({
+        title: "Signed Up!",
+        description: "Thank you for signing up. We will be in touch shortly.",
+        className: "bg-green-900 border-green-800 text-white",
+      });
+    } catch (err) {
+      toast({
+        title: "Submission Failed",
+        description: err instanceof Error ? err.message : "Failed to sign up. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <>
@@ -103,7 +153,7 @@ export default function GetInvolved() {
                 <CardDescription>Fill out the form below to get started.</CardDescription>
               </CardHeader>
               <CardContent>
-                <form ref={formRef} action={formAction} className="space-y-4">
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-white/80">Full Name</Label>
                     <Input 
@@ -112,8 +162,8 @@ export default function GetInvolved() {
                       placeholder="Jane Doe" 
                       className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
                     />
-                    {state.errors?.name && (
-                      <p className="text-sm text-destructive">{state.errors.name[0]}</p>
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name}</p>
                     )}
                   </div>
                   
@@ -127,8 +177,8 @@ export default function GetInvolved() {
                         placeholder="jane@example.com" 
                         className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
                       />
-                      {state.errors?.email && (
-                        <p className="text-sm text-destructive">{state.errors.email[0]}</p>
+                      {errors.email && (
+                        <p className="text-sm text-destructive">{errors.email}</p>
                       )}
                     </div>
                     <div className="space-y-2">
@@ -140,37 +190,41 @@ export default function GetInvolved() {
                         placeholder="(555) 555-1234" 
                         className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
                       />
-                      {state.errors?.phone && (
-                        <p className="text-sm text-destructive">{state.errors.phone[0]}</p>
+                      {errors.phone && (
+                        <p className="text-sm text-destructive">{errors.phone}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-white/80">State(s)</Label>
+                    {/* Changing the key forces React to remount the component,
+                        which resets its internal selected-states since
+                        formRef.reset() only clears native HTML inputs. */}
                     <StateMultiSelect
+                      key={resetKey}
                       name="states"
-                      error={state.errors?.states?.[0]}
+                      error={errors.states}
                     />
                   </div>
 
                   <CongressionalDistrictInput
-                    error={state.errors?.congressionalDistrict?.[0]}
+                    error={errors.congressionalDistrict}
                   />
 
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-primary/90 text-background font-bold h-12 mt-2"
-                    disabled={isPending || state.success}
+                    disabled={isPending || success}
                   >
                     {isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : state.success ? (
+                    ) : success ? (
                       <CheckCircle className="mr-2 h-4 w-4" />
                     ) : (
                       <Send className="mr-2 h-4 w-4" />
                     )}
-                    {isPending ? "Submitting..." : state.success ? "Signed Up!" : "Sign Up"}
+                    {isPending ? "Submitting..." : success ? "Signed Up!" : "Sign Up"}
                   </Button>
                 </form>
               </CardContent>
