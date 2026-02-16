@@ -10,6 +10,11 @@ interface LocationPermissionDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Dialog shown when the app needs location access (e.g. to look up congressional district).
+ * Explains that location is only used for that purpose and is not stored. The user can allow
+ * access via the browser prompt or cancel.
+ */
 export function LocationPermissionDialog({ open, onOpenChange }: LocationPermissionDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>

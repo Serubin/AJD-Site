@@ -71,8 +71,12 @@ export abstract class BaseViewDAO {
       return response as unknown as NocoDB_ListResponse<T>;
     };
 
+    if (this.ttl <= 0) {
+      return fetcher();
+    }
+
     return unstable_cache(fetcher, cacheKey, {
-      revalidate: this.ttl > 0 ? this.ttl : false,
+      revalidate: this.ttl,
     })();
   }
 
@@ -83,6 +87,20 @@ export abstract class BaseViewDAO {
     data: Record<string, unknown>
   ): Promise<T> {
     const response = await this.api.dbDataTableRow.create(this.tableId, data);
+    return response as unknown as T;
+  }
+
+  /**
+   * Update an existing record in the NocoDB table by row ID.
+   */
+  protected async updateRecord<T = Record<string, unknown>>(
+    rowId: number,
+    data: Record<string, unknown>
+  ): Promise<T> {
+    const response = await this.api.dbDataTableRow.update(this.tableId, {
+      Id: rowId,
+      ...data,
+    });
     return response as unknown as T;
   }
 }
