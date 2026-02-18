@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
-import { findUser, updateUser } from "@/lib/users";
+import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -97,6 +97,22 @@ export async function PATCH(request: NextRequest) {
         { error: "Invalid or expired link" },
         { status: 404 }
       );
+    }
+
+    const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
+      email,
+      phoneValue,
+      link.User.Id
+    );
+    if (emailTaken || phoneTaken) {
+      const errors: Record<string, string> = {};
+      if (emailTaken) errors.email = "This email is already registered.";
+      if (phoneTaken) errors.phone = "This phone number is already registered.";
+      const error =
+        emailTaken && phoneTaken
+          ? "This email and phone number are already registered."
+          : (errors.email || errors.phone);
+      return NextResponse.json({ error, errors }, { status: 409 });
     }
 
     const user = await updateUser(link.User.Id, {

@@ -49,3 +49,22 @@ export async function updateUser(
   const dao = getUsersDAO();
   return dao.updateUser(id, input);
 }
+
+export async function checkEmailPhoneUniqueness(
+  email: string,
+  phone: string,
+  excludeUserId?: number
+): Promise<{ emailTaken: boolean; phoneTaken: boolean }> {
+  const dao = getUsersDAO();
+  const byEmail = await dao.findByEmail(email);
+  const emailTaken =
+    !!byEmail && (excludeUserId === undefined || byEmail.Id !== excludeUserId);
+  let phoneTaken = false;
+  if (phone.trim() !== "") {
+    const byPhone = await dao.findByPhone(phone);
+    phoneTaken =
+      !!byPhone &&
+      (excludeUserId === undefined || byPhone.Id !== excludeUserId);
+  }
+  return { emailTaken, phoneTaken };
+}

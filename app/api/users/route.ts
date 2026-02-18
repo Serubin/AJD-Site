@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createUser, findUser } from "@/lib/users";
+import { createUser, findUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -58,6 +58,23 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
+      email,
+      phoneValue
+    );
+    if (emailTaken || phoneTaken) {
+      const errors: Record<string, string> = {};
+      if (emailTaken) errors.email = "This email is already registered.";
+      if (phoneTaken) errors.phone = "This phone number is already registered.";
+      const error =
+        emailTaken && phoneTaken
+          ? "This email and phone number are already registered."
+          : emailTaken
+            ? "This email is already registered."
+            : "This phone number is already registered.";
+      return NextResponse.json({ error, errors }, { status: 409 });
+    }
+
     const user = await createUser({
       name,
       email,

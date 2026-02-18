@@ -69,6 +69,26 @@ export class UsersDAO extends BaseViewDAO {
   }
 
   /**
+   * Find a user by email.
+   * Returns the first matching record, or null if none found.
+   */
+  async findByEmail(email: string): Promise<UserRecord | null> {
+    const where = `(Email,eq,${email})`;
+    const result = await this.listRecords<UserRecord>({ where, limit: 1 });
+    return result.list.length > 0 ? result.list[0] : null;
+  }
+
+  /**
+   * Find a user by phone number.
+   * Returns the first matching record, or null if none found.
+   */
+  async findByPhone(phone: string): Promise<UserRecord | null> {
+    const where = `(Phone,eq,${phone})`;
+    const result = await this.listRecords<UserRecord>({ where, limit: 1 });
+    return result.list.length > 0 ? result.list[0] : null;
+  }
+
+  /**
    * Find a user by their NocoDB row ID.
    * Returns null if not found.
    */
