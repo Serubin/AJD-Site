@@ -61,6 +61,68 @@ function getCsrfToken(): string {
   );
 }
 
+function getStatusPanelVariant(
+  existingUserFound: boolean,
+  success: boolean,
+  isUpdateMode: boolean
+): "signUp" | "update" | "linkSent" {
+  if (existingUserFound && !success) return "linkSent";
+  if (isUpdateMode) return "update";
+  return "signUp";
+}
+
+function FormCardHeader({ isUpdateMode }: { isUpdateMode: boolean }) {
+  let title: string;
+  let description: string;
+  if (isUpdateMode) {
+    title = "Update Info";
+    description = "Update your information below.";
+  } else {
+    title = "Sign Up";
+    description =
+      "Fill out the form below to get started. Or update your information by entering your email or phone number.";
+  }
+  return (
+    <CardHeader>
+      <CardTitle className="text-white font-display text-2xl">
+        {title}
+      </CardTitle>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+  );
+}
+
+function SubmitButtonContent({
+  isPending,
+  isUpdateMode,
+}: {
+  isPending: boolean;
+  isUpdateMode: boolean;
+}) {
+  if (isPending) {
+    return (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Submitting...
+      </>
+    );
+  }
+  if (isUpdateMode) {
+    return (
+      <>
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Update
+      </>
+    );
+  }
+  return (
+    <>
+      <Send className="mr-2 h-4 w-4" />
+      Sign Up
+    </>
+  );
+}
+
 export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsappLink }: GetInvolvedFormProps) {
   const resolvedStatusContent = statusContent ?? defaultStatusContent;
   const { toast } = useToast();
@@ -249,18 +311,30 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(
-          data.error ||
-            (isUpdateMode ? "Failed to update" : "Failed to sign up")
-        );
+        let errorMessage: string;
+        if (isUpdateMode) {
+          errorMessage = "Failed to update";
+        } else {
+          errorMessage = "Failed to sign up";
+        }
+        throw new Error(data.error || errorMessage);
       }
 
       setSuccess(true);
+      let toastTitle: string;
+      let toastDescription: string;
+      if (isUpdateMode) {
+        toastTitle = "Updated!";
+        toastDescription =
+          "Your information has been updated successfully.";
+      } else {
+        toastTitle = "Signed Up!";
+        toastDescription =
+          "Thank you for signing up. We will be in touch shortly.";
+      }
       toast({
-        title: isUpdateMode ? "Updated!" : "Signed Up!",
-        description: isUpdateMode
-          ? "Your information has been updated successfully."
-          : "Thank you for signing up. We will be in touch shortly.",
+        title: toastTitle,
+        description: toastDescription,
         className: "bg-green-900 border-green-800 text-white",
       });
     } catch (err) {
@@ -276,6 +350,11 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
       setIsPending(false);
     }
   };
+
+  const baseCardClass =
+    "bg-card/90 backdrop-blur-sm border-white/10 shadow-2xl";
+  const cardClassName =
+    success || existingUserFound ? `${baseCardClass} invisible` : baseCardClass;
 
   return (
     <main className="flex-grow pt-32 pb-20 px-4 sm:px-6 flex items-center justify-center">
@@ -331,8 +410,8 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
                   Join Our Community
                 </h3>
                 <p className="text-muted-foreground text-sm">
-                  Participate in our community chat and get updates on our
-                  latest campaigns.
+                  Participate in our active WhatsApp community chat and get updates on our
+                  latest campaigns and engage with other members.
                 </p>
               </div>
             </div>
@@ -349,30 +428,19 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
               <Card className="absolute inset-0 bg-card/90 backdrop-blur-sm border-white/10 shadow-2xl z-10 overflow-hidden">
                 <CardContent className="flex flex-col items-center justify-center text-center h-full px-6 space-y-4 overflow-y-auto">
                   <FormStatusPanel
-                    variant={
-                      existingUserFound && !success
-                        ? "linkSent"
-                        : isUpdateMode
-                          ? "update"
-                          : "signUp"
-                    }
+                    variant={getStatusPanelVariant(
+                      existingUserFound,
+                      success,
+                      isUpdateMode
+                    )}
                     content={resolvedStatusContent}
                     whatsappLink={whatsappLink}
                   />
                 </CardContent>
               </Card>
             )}
-            <Card className={`bg-card/90 backdrop-blur-sm border-white/10 shadow-2xl ${success || existingUserFound ? "invisible" : ""}`}>
-              <CardHeader>
-                <CardTitle className="text-white font-display text-2xl">
-                  {isUpdateMode ? "Update Info" : "Sign Up"}
-                </CardTitle>
-                <CardDescription>
-                  {isUpdateMode
-                    ? "Update your information below."
-                    : "Fill out the form below to get started. Or update your information by entering your email or phone number."}
-                </CardDescription>
-              </CardHeader>
+            <Card className={cardClassName}>
+              <FormCardHeader isUpdateMode={isUpdateMode} />
               <CardContent>
                 <form
                   ref={formRef}
@@ -464,18 +532,10 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
                     className="w-full bg-primary hover:bg-primary/90 text-background font-bold h-12 mt-2"
                     disabled={isPending || existingUserFound}
                   >
-                    {isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : isUpdateMode ? (
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                    ) : (
-                      <Send className="mr-2 h-4 w-4" />
-                    )}
-                    {isPending
-                      ? "Submitting..."
-                      : isUpdateMode
-                        ? "Update"
-                        : "Sign Up"}
+                    <SubmitButtonContent
+                      isPending={isPending}
+                      isUpdateMode={isUpdateMode}
+                    />
                   </Button>
 
                 </form>
