@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+const { withPlausibleProxy } = require('next-plausible')
 
 const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
@@ -39,4 +40,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const plausibleConfig = {
+  customDomain: 'https://analytics.serubin.net',
+  selfHosted: true,
+  trackOutboundLinks: true,
+  taggedEvents: true,
+}
+
+module.exports = withPlausibleProxy(plausibleConfig)(nextConfig);
