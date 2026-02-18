@@ -1,4 +1,5 @@
 import YAML from "yaml";
+import { config } from "@/lib/config";
 import { BaseViewDAO } from "./BaseViewDAO";
 import type { ContentType, CMSRecord, CMSSection } from "../cms.types";
 
@@ -6,19 +7,18 @@ import type { ContentType, CMSRecord, CMSSection } from "../cms.types";
  * Data Access Object for CMS content stored in NocoDB.
  * Handles fetching records from the CMS view and parsing
  * content fields (YAML, JSON, markdown).
+ * Configured via config.cms (env: nocodb__cms__table_id, nocodb__cms__view_id).
+ * Call only when config.cms is non-null (e.g. from lib/cms.ts getCmsDAO).
  */
 export class CmsDAO extends BaseViewDAO {
   constructor() {
-    const tableId = process.env.CMS_TABLE_ID;
-    const viewId = process.env.CMS_VIEW_ID;
-
-    if (!tableId || !viewId) {
+    const cmsConfig = config.cms;
+    if (!cmsConfig) {
       throw new Error(
-        "Missing CMS configuration: CMS_TABLE_ID and CMS_VIEW_ID must be set"
+        "CMS not configured: nocodb__cms__table_id and nocodb__cms__view_id must be set"
       );
     }
-
-    super(tableId, viewId);
+    super(cmsConfig.tableId, cmsConfig.viewId);
   }
 
   /**

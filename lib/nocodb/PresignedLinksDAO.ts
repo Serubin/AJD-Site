@@ -1,3 +1,4 @@
+import { config } from "@/lib/config";
 import { BaseViewDAO } from "./BaseViewDAO";
 
 export interface PresignedLinkRecord {
@@ -14,15 +15,7 @@ export interface PresignedLinkRecord {
  */
 export class PresignedLinksDAO extends BaseViewDAO {
   constructor() {
-    const tableId = process.env.PRESIGNED_LINKS_TABLE_ID;
-    const viewId = process.env.PRESIGNED_LINKS_VIEW_ID;
-
-    if (!tableId || !viewId) {
-      throw new Error(
-        "Missing PresignedLinks configuration: PRESIGNED_LINKS_TABLE_ID and PRESIGNED_LINKS_VIEW_ID must be set"
-      );
-    }
-
+    const { tableId, viewId } = config.presignedLinks;
     super(tableId, viewId, 0);
   }
 
