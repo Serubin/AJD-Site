@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import type { Api } from "nocodb-sdk";
+import { config } from "@/lib/config";
 import { NocoDBClientFactory } from "./client";
 
 export interface ListRecordsParams {
@@ -37,7 +38,7 @@ export abstract class BaseViewDAO {
     this.api = NocoDBClientFactory.getClient();
     this.tableId = tableId;
     this.viewId = viewId;
-    this.ttl = ttl ?? (process.env.NODE_ENV === "production" ? 60 * 60 : 0);
+    this.ttl = ttl ?? (config.app.isProduction ? 60 * 60 : 0);
   }
 
   /**

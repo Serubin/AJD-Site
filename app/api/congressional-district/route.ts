@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { config } from "@/lib/config";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const apiKey = process.env.GEOCODIO_API_KEY;
+  const apiKey = config.features.geocodioApiKey;
   if (!apiKey) {
     return NextResponse.json(
       { error: "Geocodio API key is not configured" },
