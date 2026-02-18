@@ -27,6 +27,7 @@ export interface PhoneInputProps {
   onNationalChange: (digits: string) => void;
   onBlur?: () => void;
   error?: string;
+  optional?: boolean;
   id?: string;
   className?: string;
   inputClassName?: string;
@@ -45,6 +46,7 @@ export function PhoneInput({
   onNationalChange,
   onBlur,
   error,
+  optional,
   id = "phone",
   className,
   inputClassName,
@@ -61,6 +63,9 @@ export function PhoneInput({
     <div className={className}>
       <Label htmlFor={id} className="text-white/80">
         Phone Number
+        {optional && (
+          <span className="ml-1.5 font-normal text-white/50">(Optional)</span>
+        )}
       </Label>
       <div className="mt-2 flex gap-2">
         <Select

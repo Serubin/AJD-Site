@@ -13,6 +13,7 @@ interface CongressionalDistrictInputProps {
   error?: string;
   value?: string;
   onDistrictChange?: (value: string) => void;
+  optional?: boolean;
 }
 
 /**
@@ -22,7 +23,7 @@ interface CongressionalDistrictInputProps {
  * your current location. If location access is needed, a dialog will explain and ask for
  * permission; location is not stored.
  */
-export function CongressionalDistrictInput({ error, value, onDistrictChange }: CongressionalDistrictInputProps) {
+export function CongressionalDistrictInput({ error, value, onDistrictChange, optional }: CongressionalDistrictInputProps) {
   const { toast } = useToast();
   const districtRef = useRef<HTMLInputElement>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -98,7 +99,12 @@ export function CongressionalDistrictInput({ error, value, onDistrictChange }: C
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="congressionalDistrict" className="text-white/80">Congressional District</Label>
+        <Label htmlFor="congressionalDistrict" className="text-white/80">
+          Congressional District
+          {optional && (
+            <span className="ml-1.5 font-normal text-white/50">(Optional)</span>
+          )}
+        </Label>
         <div className="relative">
           <Input
             ref={districtRef}

@@ -203,11 +203,8 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
     const newErrors: FormErrors = {};
     if (!name.trim()) newErrors.name = "Name is required";
     if (!email.trim()) newErrors.email = "Email is required";
-    if (!phone) {
-      newErrors.phone =
-        phoneCountryCode === "1" && phoneNational.length > 0
-          ? "Enter a valid 10-digit number"
-          : "Phone number is required";
+    if (phoneCountryCode === "1" && phoneNational.length > 0 && !phone) {
+      newErrors.phone = "Enter a valid 10-digit number";
     }
     if (states.length === 0)
       newErrors.states = "At least one state is required";
@@ -219,7 +216,13 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
     }
 
     const csrfToken = getCsrfToken();
-    const payload = { name, email, phone, states, congressionalDistrict };
+    const payload = {
+      name,
+      email,
+      phone: phone || "",
+      states,
+      congressionalDistrict,
+    };
 
     try {
       let res: Response;
@@ -367,7 +370,7 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
                 <CardDescription>
                   {isUpdateMode
                     ? "Update your information below."
-                    : "Fill out the form below to get started."}
+                    : "Fill out the form below to get started. Or update your information by entering your email or phone number."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -434,6 +437,7 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
                       }}
                       onBlur={flushLookup}
                       error={errors.phone}
+                      optional
                       className="space-y-2"
                     />
                   </div>
@@ -452,6 +456,7 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
                     value={congressionalDistrict}
                     onDistrictChange={setCongressionalDistrict}
                     error={errors.congressionalDistrict}
+                    optional
                   />
 
                   <Button
