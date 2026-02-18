@@ -32,7 +32,7 @@ export class UsersDAO extends BaseViewDAO {
       );
     }
 
-    super(tableId, viewId);
+    super(tableId, viewId, 0);
   }
 
   /**
@@ -41,6 +41,39 @@ export class UsersDAO extends BaseViewDAO {
    */
   async createUser(input: CreateUserInput): Promise<UserRecord> {
     return this.createRecord<UserRecord>({
+      Name: input.name,
+      Email: input.email,
+      Phone: input.phone,
+      States: input.states.join(","),
+      CongressionalDistrict: input.congressionalDistrict,
+    });
+  }
+
+  /**
+   * Find a user by email and/or phone number.
+   * Returns the first matching record, or null if none found.
+   */
+  async findByEmailOrPhone(
+    email?: string,
+    phone?: string
+  ): Promise<UserRecord | null> {
+    const conditions: string[] = [];
+    if (email) conditions.push(`(Email,eq,${email})`);
+    if (phone) conditions.push(`(Phone,eq,${phone})`);
+
+    if (conditions.length === 0) return null;
+
+    const where = conditions.join("~or");
+    const result = await this.listRecords<UserRecord>({ where, limit: 1 });
+    console.log(result);
+    return result.list.length > 0 ? result.list[0] : null;
+  }
+
+  /**
+   * Update an existing user record.
+   */
+  async updateUser(id: number, input: CreateUserInput): Promise<UserRecord> {
+    return this.updateRecord<UserRecord>(id, {
       Name: input.name,
       Email: input.email,
       Phone: input.phone,

@@ -28,3 +28,19 @@ export async function createUser(input: CreateUserInput): Promise<UserRecord> {
   const dao = getUsersDAO();
   return dao.createUser(input);
 }
+
+export async function findUser(
+  email?: string,
+  phone?: string
+): Promise<UserRecord | null> {
+  const dao = getUsersDAO();
+  return dao.findByEmailOrPhone(email, phone);
+}
+
+export async function updateUser(
+  id: number,
+  input: CreateUserInput
+): Promise<UserRecord> {
+  const dao = getUsersDAO();
+  return dao.updateUser(id, input);
+}

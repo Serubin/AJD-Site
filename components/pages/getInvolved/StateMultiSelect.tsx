@@ -77,20 +77,43 @@ const US_STATES = [
 interface StateMultiSelectProps {
   name?: string;
   error?: string;
+  value?: string[];
+  onChange?: (value: string[]) => void;
 }
 
-export function StateMultiSelect({ name = "states", error }: StateMultiSelectProps) {
+/**
+ * Multi-select for US states (including DC).
+ *
+ * How it works: Click the field to open the list, type to search by state name or code,
+ * then click a state to add it. The menu closes after each selection; open it again to
+ * add more. Remove a state by clicking the X on its badge.
+ */
+export function StateMultiSelect({ name = "states", error, value, onChange }: StateMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string[]>([]);
+  const [search, setSearch] = React.useState("");
+  const [selected, setSelected] = React.useState<string[]>(value ?? []);
 
-  const toggle = (value: string) => {
-    setSelected((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+  // Sync internal state when controlled value changes
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setSelected(value);
+    }
+  }, [value]);
+
+  const toggle = (val: string) => {
+    const next = selected.includes(val)
+      ? selected.filter((v) => v !== val)
+      : [...selected, val];
+    setSelected(next);
+    onChange?.(next);
+    setOpen(false);
+    setSearch("");
   };
 
-  const remove = (value: string) => {
-    setSelected((prev) => prev.filter((v) => v !== value));
+  const remove = (val: string) => {
+    const next = selected.filter((v) => v !== val);
+    setSelected(next);
+    onChange?.(next);
   };
 
   return (
@@ -146,7 +169,7 @@ export function StateMultiSelect({ name = "states", error }: StateMultiSelectPro
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search states..." />
+            <CommandInput placeholder="Search states..." value={search} onValueChange={setSearch} />
             <CommandList>
               <CommandEmpty>No state found.</CommandEmpty>
               <CommandGroup>

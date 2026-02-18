@@ -11,10 +11,18 @@ import { LocationPermissionDialog } from "@/components/pages/getInvolved/Locatio
 
 interface CongressionalDistrictInputProps {
   error?: string;
+  value?: string;
   onDistrictChange?: (value: string) => void;
 }
 
-export function CongressionalDistrictInput({ error, onDistrictChange }: CongressionalDistrictInputProps) {
+/**
+ * Congressional district field (e.g. CA-12).
+ *
+ * How it works: Type your district directly, or click the map-pin button to look it up from
+ * your current location. If location access is needed, a dialog will explain and ask for
+ * permission; location is not stored.
+ */
+export function CongressionalDistrictInput({ error, value, onDistrictChange }: CongressionalDistrictInputProps) {
   const { toast } = useToast();
   const districtRef = useRef<HTMLInputElement>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -98,6 +106,7 @@ export function CongressionalDistrictInput({ error, onDistrictChange }: Congress
             name="congressionalDistrict"
             placeholder="e.g. CA-12"
             className="bg-background/50 border-white/10 text-white placeholder:text-white/30 pr-9"
+            value={value ?? ""}
             onChange={(e) => onDistrictChange?.(e.target.value)}
           />
           <Tooltip>
