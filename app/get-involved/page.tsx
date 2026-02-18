@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StateMultiSelect } from "@/components/StateMultiSelect";
+import { CongressionalDistrictInput } from "@/components/pages/getInvolved/CongressionalDistrictInput";
 import { useEffect, useRef } from "react";
 
 const initialState: ContactFormState = {
@@ -153,18 +154,9 @@ export default function GetInvolved() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="congressionalDistrict" className="text-white/80">Congressional District</Label>
-                    <Input 
-                      id="congressionalDistrict"
-                      name="congressionalDistrict" 
-                      placeholder="e.g. CA-12" 
-                      className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
-                    />
-                    {state.errors?.congressionalDistrict && (
-                      <p className="text-sm text-destructive">{state.errors.congressionalDistrict[0]}</p>
-                    )}
-                  </div>
+                  <CongressionalDistrictInput
+                    error={state.errors?.congressionalDistrict?.[0]}
+                  />
 
                   <Button 
                     type="submit" 
