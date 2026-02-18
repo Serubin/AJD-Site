@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateCsrfToken } from "@/lib/csrf";
 
 export async function GET(request: NextRequest) {
-  if (!validateCsrfToken(request)) {
-    return NextResponse.json(
-      { error: "Invalid CSRF token" },
-      { status: 403 }
-    );
-  }
-
   const { searchParams } = request.nextUrl;
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
