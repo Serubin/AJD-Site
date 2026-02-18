@@ -37,6 +37,11 @@ export async function findUser(
   return dao.findByEmailOrPhone(email, phone);
 }
 
+export async function findUserById(id: number): Promise<UserRecord | null> {
+  const dao = getUsersDAO();
+  return dao.findById(id);
+}
+
 export async function updateUser(
   id: number,
   input: CreateUserInput
