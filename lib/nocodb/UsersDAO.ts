@@ -65,7 +65,16 @@ export class UsersDAO extends BaseViewDAO {
 
     const where = conditions.join("~or");
     const result = await this.listRecords<UserRecord>({ where, limit: 1 });
-    console.log(result);
+    return result.list.length > 0 ? result.list[0] : null;
+  }
+
+  /**
+   * Find a user by their NocoDB row ID.
+   * Returns null if not found.
+   */
+  async findById(id: number): Promise<UserRecord | null> {
+    const where = `(Id,eq,${id})`;
+    const result = await this.listRecords<UserRecord>({ where, limit: 1 });
     return result.list.length > 0 ? result.list[0] : null;
   }
 

@@ -133,6 +133,12 @@ export function StateMultiSelect({ name = "states", error, value, onChange }: St
               "w-full justify-between bg-background/50 border-white/10 text-white hover:bg-background/70 hover:text-white h-auto min-h-10",
               !selected.length && "text-white/30"
             )}
+            onKeyDown={(e) => {
+              if (!open && e.key === "Backspace" && selected.length > 0) {
+                e.preventDefault();
+                remove(selected[selected.length - 1]);
+              }
+            }}
           >
             {selected.length > 0 ? (
               <div className="flex flex-wrap gap-1 py-0.5">
@@ -143,9 +149,10 @@ export function StateMultiSelect({ name = "states", error, value, onChange }: St
                     className="text-xs px-1.5 py-0"
                   >
                     {value}
-                    <button
-                      type="button"
-                      className="ml-1 rounded-full outline-none hover:text-destructive"
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className="ml-1 rounded-full outline-none hover:text-destructive cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                       onPointerDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -155,9 +162,15 @@ export function StateMultiSelect({ name = "states", error, value, onChange }: St
                         e.stopPropagation();
                         remove(value);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          if (e.key === " ") e.preventDefault();
+                          remove(value);
+                        }
+                      }}
                     >
                       <X className="h-3 w-3" />
-                    </button>
+                    </span>
                   </Badge>
                 ))}
               </div>

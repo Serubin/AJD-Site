@@ -12,13 +12,6 @@ import {
 
 const COUNTRY_OPTIONS: { code: string; label: string }[] = [
   { code: "1", label: "+1 (US/Canada)" },
-  { code: "44", label: "+44 (UK)" },
-  { code: "33", label: "+33 (France)" },
-  { code: "49", label: "+49 (Germany)" },
-  { code: "61", label: "+61 (Australia)" },
-  { code: "81", label: "+81 (Japan)" },
-  { code: "52", label: "+52 (Mexico)" },
-  { code: "55", label: "+55 (Brazil)" },
 ];
 
 function getCountryOptions(currentCode: string): { code: string; label: string }[] {

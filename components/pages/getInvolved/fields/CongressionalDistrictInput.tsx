@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LocationPermissionDialog } from "@/components/pages/getInvolved/LocationPermissionDialog";
+import { LocationPermissionDialog } from "./LocationPermissionDialog";
 
 interface CongressionalDistrictInputProps {
   error?: string;
