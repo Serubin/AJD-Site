@@ -50,9 +50,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  if (!phone || typeof phone !== "string") {
-    return NextResponse.json({ error: "Phone is required" }, { status: 400 });
-  }
+  const phoneValue =
+    typeof phone === "string" ? phone : "";
 
   if (!Array.isArray(states) || states.length === 0) {
     return NextResponse.json({ error: "At least one state is required" }, { status: 400 });
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest) {
     const user = await createUser({
       name,
       email,
-      phone,
+      phone: phoneValue,
       states: states as string[],
       congressionalDistrict: typeof congressionalDistrict === "string" ? congressionalDistrict : "",
     });

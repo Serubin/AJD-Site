@@ -80,9 +80,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  if (!phone || typeof phone !== "string") {
-    return NextResponse.json({ error: "Phone is required" }, { status: 400 });
-  }
+  const phoneValue =
+    typeof phone === "string" ? phone : "";
 
   if (!Array.isArray(states) || states.length === 0) {
     return NextResponse.json(
@@ -103,7 +102,7 @@ export async function PATCH(request: NextRequest) {
     const user = await updateUser(link.User.Id, {
       name,
       email,
-      phone,
+      phone: phoneValue,
       states: states as string[],
       congressionalDistrict:
         typeof congressionalDistrict === "string" ? congressionalDistrict : "",
