@@ -311,12 +311,10 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
 
       if (!res.ok) {
         const data = await res.json();
-        let errorMessage: string;
-        if (isUpdateMode) {
-          errorMessage = "Failed to update";
-        } else {
-          errorMessage = "Failed to sign up";
+        if (res.status === 409 && data.errors && typeof data.errors === "object") {
+          setErrors((prev) => ({ ...prev, ...data.errors }));
         }
+        const errorMessage = isUpdateMode ? "Failed to update" : "Failed to sign up";
         throw new Error(data.error || errorMessage);
       }
 
