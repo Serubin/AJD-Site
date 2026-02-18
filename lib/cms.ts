@@ -9,7 +9,9 @@ let cms: CmsDAO | null = null;
 function isCmsConfigured(): boolean {
   return !!(
     process.env.NOCODB_BASE_URL &&
-    process.env.NOCODB_API_TOKEN
+    process.env.NOCODB_API_TOKEN &&
+    process.env.CMS_TABLE_ID &&
+    process.env.CMS_VIEW_ID
   );
 }
 
