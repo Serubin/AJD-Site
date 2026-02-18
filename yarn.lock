@@ -2290,6 +2290,11 @@ nc-jsep@^1.7.5:
   dependencies:
     nc-jsep-plugin-ternary "1.7.5"
 
+next-plausible@^3.12.5:
+  version "3.12.5"
+  resolved "https://registry.yarnpkg.com/next-plausible/-/next-plausible-3.12.5.tgz#e8776b59c014b52d4238d4cb72ca88c8c3115cf4"
+  integrity sha512-l1YMuTI9akb2u7z4hyTuxXpudy8KfSteRNXCYpWpnhAoBjaWQlv6sITai1TwcR7wWvVW8DFbLubvMQAsirAjcA==
+
 next-themes@^0.4.6:
   version "0.4.6"
   resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.4.6.tgz#8d7e92d03b8fea6582892a50a928c9b23502e8b6"

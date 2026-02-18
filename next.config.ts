@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+const { withPlausibleProxy } = require('next-plausible')
 
 const nextConfig: NextConfig = {
   // Enable React strict mode for better development experience
@@ -13,30 +14,37 @@ const nextConfig: NextConfig = {
   // No additional configuration needed
 
   // Redirect all routes to coming-soon page
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-      {
-        source: '/about',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-      {
-        source: '/candidates',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-      {
-        source: '/get-involved',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-    ];
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/coming-soon',
+  //       permanent: false,
+  //     },
+  //     {
+  //       source: '/about',
+  //       destination: '/coming-soon',
+  //       permanent: false,
+  //     },
+  //     {
+  //       source: '/candidates',
+  //       destination: '/coming-soon',
+  //       permanent: false,
+  //     },
+  //     {
+  //       source: '/get-involved',
+  //       destination: '/coming-soon',
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
 };
 
-export default nextConfig;
+const plausibleConfig = {
+  customDomain: 'https://analytics.serubin.net',
+  selfHosted: true,
+  trackOutboundLinks: true,
+  taggedEvents: true,
+}
+
+module.exports = withPlausibleProxy(plausibleConfig)(nextConfig);
