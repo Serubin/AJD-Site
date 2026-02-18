@@ -15,8 +15,9 @@ export type ContactFormState = {
   errors?: {
     name?: string[];
     email?: string[];
-    zipCode?: string[];
-    message?: string[];
+    phone?: string[];
+    states?: string[];
+    congressionalDistrict?: string[];
   };
 };
 

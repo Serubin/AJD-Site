@@ -9,9 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StateMultiSelect } from "@/components/StateMultiSelect";
 import { useEffect, useRef } from "react";
 
 const initialState: ContactFormState = {
@@ -57,7 +57,7 @@ export default function GetInvolved() {
               Join the <span className="text-primary italic">Movement</span>
             </h1>
             <p className="text-lg text-muted-foreground font-serif leading-relaxed mb-8">
-              Democracy requires participation. Your voice matters. Sign up to volunteer, receive updates, or connect with a local chapter.
+              Democracy requires participation. Your voice matters. Sign up to volunteer, receive updates, and connect with our national community.
             </p>
 
             <div className="space-y-6">
@@ -84,8 +84,8 @@ export default function GetInvolved() {
                   <span className="font-bold text-primary">3</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-lg font-display">Attend Events</h3>
-                  <p className="text-muted-foreground text-sm">Participate in town halls and meet endorsed candidates.</p>
+                  <h3 className="text-white font-bold text-lg font-display">Join Our Community</h3>
+                  <p className="text-muted-foreground text-sm">Participate in our community chat and get updates on our latest campaigns.</p>
                 </div>
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function GetInvolved() {
           >
             <Card className="bg-card/90 backdrop-blur-sm border-white/10 shadow-2xl">
               <CardHeader>
-                <CardTitle className="text-white font-display text-2xl">Contact Us</CardTitle>
+                <CardTitle className="text-white font-display text-2xl">Sign Up</CardTitle>
                 <CardDescription>Fill out the form below to get started.</CardDescription>
               </CardHeader>
               <CardContent>
@@ -131,29 +131,38 @@ export default function GetInvolved() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="zipCode" className="text-white/80">Zip Code</Label>
+                      <Label htmlFor="phone" className="text-white/80">Phone Number</Label>
                       <Input 
-                        id="zipCode"
-                        name="zipCode" 
-                        placeholder="12345" 
+                        id="phone"
+                        name="phone" 
+                        type="tel"
+                        placeholder="(555) 555-1234" 
                         className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
                       />
-                      {state.errors?.zipCode && (
-                        <p className="text-sm text-destructive">{state.errors.zipCode[0]}</p>
+                      {state.errors?.phone && (
+                        <p className="text-sm text-destructive">{state.errors.phone[0]}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message" className="text-white/80">Message (Optional)</Label>
-                    <Textarea 
-                      id="message"
-                      name="message"
-                      placeholder="I'm interested in..." 
-                      className="bg-background/50 border-white/10 text-white placeholder:text-white/30 min-h-[100px]" 
+                    <Label className="text-white/80">State(s)</Label>
+                    <StateMultiSelect
+                      name="states"
+                      error={state.errors?.states?.[0]}
                     />
-                    {state.errors?.message && (
-                      <p className="text-sm text-destructive">{state.errors.message[0]}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="congressionalDistrict" className="text-white/80">Congressional District</Label>
+                    <Input 
+                      id="congressionalDistrict"
+                      name="congressionalDistrict" 
+                      placeholder="e.g. CA-12" 
+                      className="bg-background/50 border-white/10 text-white placeholder:text-white/30" 
+                    />
+                    {state.errors?.congressionalDistrict && (
+                      <p className="text-sm text-destructive">{state.errors.congressionalDistrict[0]}</p>
                     )}
                   </div>
 
@@ -169,7 +178,7 @@ export default function GetInvolved() {
                     ) : (
                       <Send className="mr-2 h-4 w-4" />
                     )}
-                    {isPending ? "Submitting..." : state.success ? "Sent!" : "Send Message"}
+                    {isPending ? "Submitting..." : state.success ? "Signed Up!" : "Sign Up"}
                   </Button>
                 </form>
               </CardContent>

@@ -20,7 +20,7 @@ async function fetchCMSData(): Promise<CMSResponse> {
     headers: {
       "xc-token": process.env.NOCODB_API_TOKEN!,
     },
-    next: { revalidate: 0 }, // Cache for 1 hour
+    next: { revalidate: TTL },
   });
 
   if (!res.ok) {
@@ -66,6 +66,11 @@ function parseContent(content: string, type: ContentType): unknown {
 export async function getPageContent(
   pageName: string
 ): Promise<Record<string, CMSSection>> {
+  if (!process.env.CMS_API_BASE_URL || !process.env.CMS_API_TABLE_ID || !process.env.CMS_API_VIEW_ID) {
+    console.warn("CMS environment variables not configured, returning empty content");
+    return {};
+  }
+
   const data = await fetchCMSData();
   const pageRecords = data.list.filter((record) => record.Page === pageName);
 
