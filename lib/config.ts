@@ -27,7 +27,8 @@ let cachedEnv: Env | null = null;
 
 function getEnv(): Env {
   if (cachedEnv) return cachedEnv;
-  cachedEnv = envSchema.parse({
+  // #region agent log
+  const raw = {
     app__base_url: process.env.app__base_url,
     app__node_env: process.env.app__node_env,
     nocodb__base_url: process.env.nocodb__base_url,
@@ -42,7 +43,12 @@ function getEnv(): Env {
       process.env.nocodb__presigned_links__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
-  });
+  };
+  const payload = { location: "lib/config.ts:getEnv", message: "getEnv parsed", data: { hasNocodbBaseUrl: !!raw.nocodb__base_url, hasNocodbToken: !!raw.nocodb__api_token, hasCmsTableId: !!raw.nocodb__cms__table_id, hasCmsViewId: !!raw.nocodb__cms__view_id, baseUrlStartsWithHttp: !!(raw.nocodb__base_url && /^https?:\/\//i.test(raw.nocodb__base_url)) }, timestamp: Date.now(), hypothesisId: "A" };
+  fetch("http://127.0.0.1:7243/ingest/870d7da7-617e-49a8-920c-3352a422e2b1", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).catch(() => {});
+  try { console.log(JSON.stringify(payload)); } catch (_) {}
+  // #endregion
+  cachedEnv = envSchema.parse(raw);
   return cachedEnv;
 }
 
