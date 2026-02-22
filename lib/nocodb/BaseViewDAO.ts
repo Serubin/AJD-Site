@@ -65,11 +65,31 @@ export abstract class BaseViewDAO {
     ];
 
     const fetcher = async (): Promise<NocoDB_ListResponse<T>> => {
-      const response = await this.api.dbDataTableRow.list(
-        this.tableId,
-        queryParams
-      );
-      return response as unknown as NocoDB_ListResponse<T>;
+      // #region agent log
+      const payloadEnter = { location: "lib/nocodb/BaseViewDAO.ts:listRecords", message: "listRecords fetch start", data: { tableId: this.tableId, viewId: this.viewId }, timestamp: Date.now(), hypothesisId: "B" };
+      fetch("http://127.0.0.1:7243/ingest/870d7da7-617e-49a8-920c-3352a422e2b1", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadEnter) }).catch(() => {});
+      try { console.log(JSON.stringify(payloadEnter)); } catch (_) {}
+      // #endregion
+      try {
+        const response = await this.api.dbDataTableRow.list(
+          this.tableId,
+          queryParams
+        );
+        // #region agent log
+        const listLen = (response as unknown as NocoDB_ListResponse<T>)?.list?.length ?? -1;
+        const payloadOk = { location: "lib/nocodb/BaseViewDAO.ts:listRecords", message: "listRecords fetch ok", data: { listLength: listLen }, timestamp: Date.now(), hypothesisId: "B" };
+        fetch("http://127.0.0.1:7243/ingest/870d7da7-617e-49a8-920c-3352a422e2b1", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadOk) }).catch(() => {});
+        try { console.log(JSON.stringify(payloadOk)); } catch (_) {}
+        // #endregion
+        return response as unknown as NocoDB_ListResponse<T>;
+      } catch (err) {
+        // #region agent log
+        const payloadErr = { location: "lib/nocodb/BaseViewDAO.ts:listRecords", message: "listRecords fetch error", data: { error: String(err) }, timestamp: Date.now(), hypothesisId: "B" };
+        fetch("http://127.0.0.1:7243/ingest/870d7da7-617e-49a8-920c-3352a422e2b1", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadErr) }).catch(() => {});
+        try { console.log(JSON.stringify(payloadErr)); } catch (_) {}
+        // #endregion
+        throw err;
+      }
     };
 
     if (this.ttl <= 0) {
