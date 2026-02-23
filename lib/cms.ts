@@ -1,6 +1,7 @@
 import { config } from "./config";
 import { CmsDAO } from "./nocodb/CmsDAO";
 import type { CMSSection } from "./cms.types";
+import { connection } from 'next/server';
 
 // Re-export public types for consumers
 export type { CMSSection, TeamMember } from "./cms.types";
@@ -23,6 +24,7 @@ function getCmsDAO(): CmsDAO | null {
 export async function getPageContent(
   pageName: string
 ): Promise<Record<string, CMSSection>> {
+  await connection();
   const dao = getCmsDAO();
   if (!dao) {
     return {};
