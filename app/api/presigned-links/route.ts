@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { config } from "@/lib/config";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
 import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const link = await createPresignedLink(user.Id);
-    const baseUrl = config.app.baseUrl;
+    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
     console.log(
       `[Presigned Link] Update link for user ${user.Id}: ${baseUrl}/get-involved/${link.Slug}`
     );

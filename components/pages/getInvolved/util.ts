@@ -1,4 +1,3 @@
-import { config } from "@/lib/config";
 import { getPageContent } from "@/lib/cms";
 import {
   defaultStatusContent,
@@ -28,6 +27,6 @@ export async function getGetInvolvedFormProps(): Promise<{
 
   return {
     statusContent,
-    whatsappLink: config.features.whatsappLink,
+    whatsappLink: process.env.WHATSAPP_LINK,
   };
 }
