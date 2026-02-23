@@ -26,6 +26,7 @@ import {
   defaultStatusContent,
   type StatusPanelContent,
 } from "@/components/pages/getInvolved/status/FormStatusPanel";
+import { usePlausible } from 'next-plausible';
 
 interface FormErrors {
   name?: string;
@@ -124,6 +125,7 @@ function SubmitButtonContent({
 }
 
 export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsappLink }: GetInvolvedFormProps) {
+  const plausible = usePlausible();
   const resolvedStatusContent = statusContent ?? defaultStatusContent;
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
@@ -200,14 +202,15 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
           if (!linkRes.ok) {
             throw new Error("Failed to send update link");
           }
-
+          plausible('user-data-update-link-sent');
           setExistingUserFound(true);
-        } catch {
+        } catch (err) {
           toast({
             title: "Something went wrong",
             description: "We couldn't send the update link. Please try again.",
             variant: "destructive",
           });
+          plausible('user-data-update-link-failed', { props: { error: err instanceof Error ? err.message : "Unknown error" } });
         } finally {
           setIsPending(false);
         }
@@ -322,10 +325,12 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
       let toastTitle: string;
       let toastDescription: string;
       if (isUpdateMode) {
+        plausible('user-data-update-success');
         toastTitle = "Updated!";
         toastDescription =
           "Your information has been updated successfully.";
       } else {
+        plausible('user-signup-success');
         toastTitle = "Signed Up!";
         toastDescription =
           "Thank you for signing up. We will be in touch shortly.";
@@ -336,6 +341,7 @@ export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsa
         className: "bg-green-900 border-green-800 text-white",
       });
     } catch (err) {
+      plausible('user-data-failed', { props: { error: err instanceof Error ? err.message : "Unknown error" } });
       toast({
         title: "Submission Failed",
         description:
