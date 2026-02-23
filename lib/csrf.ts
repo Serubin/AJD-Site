@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { config } from "@/lib/config";
 
 export const CSRF_COOKIE_NAME = "csrf_token";
 export const CSRF_HEADER_NAME = "x-csrf-token";
@@ -12,7 +13,7 @@ export function generateCsrfToken(): string {
 export function setCsrfCookie(response: NextResponse, token: string): void {
   response.cookies.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // Client JS needs to read this
-    secure: process.env.NODE_ENV === "production",
+    secure: config.app.isProduction,
     sameSite: "strict",
     path: "/",
   });

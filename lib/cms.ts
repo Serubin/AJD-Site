@@ -1,3 +1,4 @@
+import { config } from "./config";
 import { CmsDAO } from "./nocodb/CmsDAO";
 import type { CMSSection } from "./cms.types";
 
@@ -6,18 +7,10 @@ export type { CMSSection, TeamMember } from "./cms.types";
 
 let cms: CmsDAO | null = null;
 
-function isCmsConfigured(): boolean {
-  return !!(
-    process.env.NOCODB_BASE_URL &&
-    process.env.NOCODB_API_TOKEN &&
-    process.env.CMS_TABLE_ID &&
-    process.env.CMS_VIEW_ID
-  );
-}
-
 function getCmsDAO(): CmsDAO | null {
-  if (!isCmsConfigured()) {
-    console.warn("CMS environment variables not configured; returning empty content");
+  const cmsConfig = config.cms;
+  if (!cmsConfig) {
+    console.warn("CMS not configured (nocodb__cms__table_id, nocodb__cms__view_id); returning empty content");
     return null;
   }
 

@@ -1,3 +1,4 @@
+import { config } from "./config";
 import {
   PresignedLinksDAO,
   type PresignedLinkRecord,
@@ -9,20 +10,7 @@ const LINK_EXPIRY_HOURS = 24;
 
 let dao: PresignedLinksDAO | null = null;
 
-function isConfigured(): boolean {
-  return !!(
-    process.env.NOCODB_BASE_URL &&
-    process.env.NOCODB_API_TOKEN &&
-    process.env.PRESIGNED_LINKS_TABLE_ID &&
-    process.env.PRESIGNED_LINKS_VIEW_ID
-  );
-}
-
 function getDAO(): PresignedLinksDAO {
-  if (!isConfigured()) {
-    throw new Error("PresignedLinks environment variables not configured");
-  }
-
   if (!dao) {
     dao = new PresignedLinksDAO();
   }
