@@ -1,4 +1,3 @@
-import { config } from "@/lib/config";
 import { BaseViewDAO } from "./BaseViewDAO";
 
 export interface UserRecord {
@@ -24,7 +23,15 @@ export interface CreateUserInput {
  */
 export class UsersDAO extends BaseViewDAO {
   constructor() {
-    const { tableId, viewId } = config.users;
+    const tableId = process.env.USERS_TABLE_ID;
+    const viewId = process.env.USERS_VIEW_ID;
+
+    if (!tableId || !viewId) {
+      throw new Error(
+        "Missing Users configuration: USERS_TABLE_ID and USERS_VIEW_ID must be set"
+      );
+    }
+
     super(tableId, viewId, 0);
   }
 
