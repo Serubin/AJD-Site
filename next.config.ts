@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
 
 const plausibleConfig = {
   customDomain: 'https://analytics.serubin.net',
+  scriptName: 'ps',
   selfHosted: true,
   trackOutboundLinks: true,
   taggedEvents: true,

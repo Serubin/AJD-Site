@@ -9,9 +9,10 @@ interface CopyTextProps {
   value: string;
   className?: string;
   inputClassName?: string;
+  customOnClick?: () => void;
 }
 
-export function CopyText({ value, className, inputClassName }: CopyTextProps) {
+export function CopyText({ value, className, inputClassName, customOnClick }: CopyTextProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -19,6 +20,7 @@ export function CopyText({ value, className, inputClassName }: CopyTextProps) {
       await navigator.clipboard.writeText(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      customOnClick?.();
     } catch {
       // Fallback: select the input text (caller may trigger via input onClick)
     }

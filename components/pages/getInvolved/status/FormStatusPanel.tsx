@@ -6,6 +6,7 @@ import { CopyText } from "@/components/ui/copy-text";
 export type { StatusPanelContent } from "./statusPanelContent";
 export { defaultStatusContent } from "./statusPanelContent";
 import type { StatusPanelContent } from "./statusPanelContent";
+import { usePlausible } from 'next-plausible';
 
 interface FormStatusPanelProps {
   variant: "signUp" | "update" | "linkSent";
@@ -47,6 +48,7 @@ function StatusIcon({ variant }: { variant: FormStatusPanelProps["variant"] }) {
 }
 
 export function FormStatusPanel({ variant, content, whatsappLink }: FormStatusPanelProps) {
+  const plausible = usePlausible()
   const isLinkSent = variant === "linkSent";
   const showWhatsapp = !isLinkSent && !!whatsappLink;
 
@@ -64,6 +66,9 @@ export function FormStatusPanel({ variant, content, whatsappLink }: FormStatusPa
           value={whatsappLink}
           className="w-full max-w-sm"
           inputClassName="bg-background/50 border-white/10 text-white cursor-text"
+          customOnClick={() => {
+            plausible('copy-whatsapp-link');
+          }}
         />
       )}
     </>
