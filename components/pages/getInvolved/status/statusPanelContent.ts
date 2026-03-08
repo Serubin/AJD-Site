@@ -5,6 +5,8 @@ export interface StatusPanelContent {
   updateBody: string;
   linkSentTitle: string;
   linkSentBody: string;
+  confirmEmailTitle: string;
+  confirmEmailBody: string;
 }
 
 export const defaultStatusContent: StatusPanelContent = {
@@ -17,4 +19,7 @@ export const defaultStatusContent: StatusPanelContent = {
   linkSentTitle: "Check Your Inbox",
   linkSentBody:
     "We found your existing record and have sent a link to update your information. Please check your email or phone for the update link.",
+  confirmEmailTitle: "Check Your Email",
+  confirmEmailBody:
+    "We've sent a confirmation link to your email. Click it to verify and get the link to join our WhatsApp group.",
 };

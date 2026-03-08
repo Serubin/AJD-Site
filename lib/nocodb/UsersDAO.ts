@@ -8,6 +8,8 @@ export interface UserRecord {
   Phone: string;
   States: string;
   CongressionalDistrict: string;
+  /** When undefined/null, treat as verified (backwards compatibility). */
+  Verified?: boolean;
 }
 
 export interface CreateUserInput {
@@ -39,6 +41,7 @@ export class UsersDAO extends BaseViewDAO {
       Phone: input.phone,
       States: input.states.join(","),
       CongressionalDistrict: input.congressionalDistrict,
+      Verified: false,
     });
   }
 
@@ -102,5 +105,12 @@ export class UsersDAO extends BaseViewDAO {
       States: input.states.join(","),
       CongressionalDistrict: input.congressionalDistrict,
     });
+  }
+
+  /**
+   * Set the Verified flag on a user (e.g. after sign-up confirmation).
+   */
+  async updateUserVerified(id: number, verified: boolean): Promise<UserRecord> {
+    return this.updateRecord<UserRecord>(id, { Verified: verified });
   }
 }

@@ -38,6 +38,14 @@ export async function updateUser(
   return dao.updateUser(id, input);
 }
 
+export async function updateUserVerified(
+  id: number,
+  verified: boolean
+): Promise<UserRecord> {
+  const dao = getUsersDAO();
+  return dao.updateUserVerified(id, verified);
+}
+
 export async function checkEmailPhoneUniqueness(
   email: string,
   phone: string,
