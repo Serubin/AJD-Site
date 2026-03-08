@@ -16,6 +16,7 @@ export async function getGetInvolvedFormProps(): Promise<{
   const signUp = sections.SignUpSuccess?.parsed as SectionShape | undefined;
   const update = sections.UpdateSuccess?.parsed as SectionShape | undefined;
   const linkSent = sections.LinkSent?.parsed as SectionShape | undefined;
+  const confirmEmail = sections.ConfirmEmail?.parsed as SectionShape | undefined;
 
   const statusContent: StatusPanelContent = {
     signUpTitle: signUp?.title || defaultStatusContent.signUpTitle,
@@ -24,6 +25,8 @@ export async function getGetInvolvedFormProps(): Promise<{
     updateBody: update?.body || defaultStatusContent.updateBody,
     linkSentTitle: linkSent?.title || defaultStatusContent.linkSentTitle,
     linkSentBody: linkSent?.body || defaultStatusContent.linkSentBody,
+    confirmEmailTitle: confirmEmail?.title || defaultStatusContent.confirmEmailTitle,
+    confirmEmailBody: confirmEmail?.body || defaultStatusContent.confirmEmailBody,
   };
 
   return {

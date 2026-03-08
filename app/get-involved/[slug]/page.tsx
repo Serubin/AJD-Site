@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { findValidLink } from "@/lib/presignedLinks";
-import { findUserById } from "@/lib/users";
+import { expireLink, findValidLink } from "@/lib/presignedLinks";
+import { findUserById, updateUserVerified } from "@/lib/users";
 import { getGetInvolvedFormProps } from "@/components/pages/getInvolved/util";
 import { parseStoredPhone } from "@/lib/phone";
 import { GetInvolvedForm } from "@/components/pages/getInvolved/GetInvolvedForm";
@@ -21,6 +21,8 @@ export default async function GetInvolvedUpdate({ params }: PageProps) {
   if (!user) {
     redirect("/get-involved");
   }
+
+  await updateUserVerified(user.Id!, true);
 
   const { countryCode, nationalDigits } = parseStoredPhone(user.Phone ?? "");
 

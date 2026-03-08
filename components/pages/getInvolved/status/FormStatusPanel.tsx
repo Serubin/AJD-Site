@@ -9,7 +9,7 @@ import type { StatusPanelContent } from "./statusPanelContent";
 import { usePlausible } from 'next-plausible';
 
 interface FormStatusPanelProps {
-  variant: "signUp" | "update" | "linkSent";
+  variant: "signUp" | "update" | "linkSent" | "confirmEmail";
   content: StatusPanelContent;
   whatsappLink?: string;
 }
@@ -20,6 +20,7 @@ function getTitle(
 ): string {
   if (variant === "signUp") return content.signUpTitle;
   if (variant === "update") return content.updateTitle;
+  if (variant === "confirmEmail") return content.confirmEmailTitle;
   return content.linkSentTitle;
 }
 
@@ -29,11 +30,12 @@ function getBody(
 ): string {
   if (variant === "signUp") return content.signUpBody;
   if (variant === "update") return content.updateBody;
+  if (variant === "confirmEmail") return content.confirmEmailBody;
   return content.linkSentBody;
 }
 
 function StatusIcon({ variant }: { variant: FormStatusPanelProps["variant"] }) {
-  if (variant === "linkSent") {
+  if (variant === "linkSent" || variant === "confirmEmail") {
     return (
       <div className="w-16 h-16 rounded-full flex items-center justify-center bg-blue-900/40">
         <Mail className="h-8 w-8 text-blue-400" />
@@ -50,7 +52,8 @@ function StatusIcon({ variant }: { variant: FormStatusPanelProps["variant"] }) {
 export function FormStatusPanel({ variant, content, whatsappLink }: FormStatusPanelProps) {
   const plausible = usePlausible()
   const isLinkSent = variant === "linkSent";
-  const showWhatsapp = !isLinkSent && !!whatsappLink;
+  const isConfirmEmail = variant === "confirmEmail";
+  const showWhatsapp = !isLinkSent && !isConfirmEmail && !!whatsappLink;
 
   return (
     <>

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { config } from "@/lib/config";
+import { createPresignedLink } from "@/lib/presignedLinks";
 import { createUser, findUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
 export async function GET(request: NextRequest) {
@@ -82,6 +84,15 @@ export async function POST(request: NextRequest) {
       states: states as string[],
       congressionalDistrict: typeof congressionalDistrict === "string" ? congressionalDistrict : "",
     });
+
+    if (user.Id) {
+      const link = await createPresignedLink(user.Id);
+      const baseUrl = config.app.baseUrl;
+      const confirmUrl = `${baseUrl}/get-involved/confirm/${link.Slug}`;
+      console.log(
+        `[Signup Confirm] Confirmation link for user ${user.Id}: ${confirmUrl}`
+      );
+    }
 
     return NextResponse.json({ success: true, user }, { status: 201 });
   } catch (error) {

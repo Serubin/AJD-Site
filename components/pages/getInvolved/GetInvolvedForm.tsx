@@ -66,9 +66,10 @@ function getStatusPanelVariant(
   existingUserFound: boolean,
   success: boolean,
   isUpdateMode: boolean
-): "signUp" | "update" | "linkSent" {
+): "signUp" | "update" | "linkSent" | "confirmEmail" {
   if (existingUserFound && !success) return "linkSent";
   if (isUpdateMode) return "update";
+  if (!isUpdateMode && success) return "confirmEmail";
   return "signUp";
 }
 
