@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
+import { sendSignupConfirmation } from "@/lib/notifications";
 import { createPresignedLink } from "@/lib/presignedLinks";
+import { runExclusive } from "@/lib/runExclusive";
 import { createUser, findUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
 export async function GET(request: NextRequest) {
@@ -59,42 +61,54 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "At least one state is required" }, { status: 400 });
   }
 
+  const signupKey = `signup:${email.trim().toLowerCase()}`;
+
   try {
-    const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
-      email,
-      phoneValue
-    );
-    if (emailTaken || phoneTaken) {
-      const errors: Record<string, string> = {};
-      if (emailTaken) errors.email = "This email is already registered.";
-      if (phoneTaken) errors.phone = "This phone number is already registered.";
-      const error =
-        emailTaken && phoneTaken
-          ? "This email and phone number are already registered."
-          : emailTaken
-            ? "This email is already registered."
-            : "This phone number is already registered.";
-      return NextResponse.json({ error, errors }, { status: 409 });
-    }
-
-    const user = await createUser({
-      name,
-      email,
-      phone: phoneValue,
-      states: states as string[],
-      congressionalDistrict: typeof congressionalDistrict === "string" ? congressionalDistrict : "",
-    });
-
-    if (user.Id) {
-      const link = await createPresignedLink(user.Id);
-      const baseUrl = config.app.baseUrl;
-      const confirmUrl = `${baseUrl}/join-us/confirm/${link.Slug}`;
-      console.log(
-        `[Signup Confirm] Confirmation link for user ${user.Id}: ${confirmUrl}`
+    return await runExclusive(signupKey, async () => {
+      const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
+        email,
+        phoneValue
       );
-    }
+      if (emailTaken || phoneTaken) {
+        const errors: Record<string, string> = {};
+        if (emailTaken) errors.email = "This email is already registered.";
+        if (phoneTaken) errors.phone = "This phone number is already registered.";
+        const error =
+          emailTaken && phoneTaken
+            ? "This email and phone number are already registered."
+            : emailTaken
+              ? "This email is already registered."
+              : "This phone number is already registered.";
+        return NextResponse.json({ error, errors }, { status: 409 });
+      }
 
-    return NextResponse.json({ success: true, user }, { status: 201 });
+      const user = await createUser({
+        name,
+        email,
+        phone: phoneValue,
+        states: states as string[],
+        congressionalDistrict:
+          typeof congressionalDistrict === "string" ? congressionalDistrict : "",
+      });
+
+      if (user.Id) {
+        const { link, isNew } = await createPresignedLink(user.Id);
+        const baseUrl = config.app.baseUrl;
+        const confirmUrl = `${baseUrl}/join-us/confirm/${link.Slug}`;
+        if (isNew) {
+          await sendSignupConfirmation({
+            linkSlug: link.Slug,
+            toEmail: email,
+            toPhone: phoneValue || undefined,
+            name,
+            confirmUrl,
+            userId: user.Id,
+          });
+        }
+      }
+
+      return NextResponse.json({ success: true, user }, { status: 201 });
+    });
   } catch (error) {
     console.error("Failed to create user:", error);
     return NextResponse.json(
