@@ -1,11 +1,37 @@
 import sgMail from "@sendgrid/mail";
+
+import { marked } from "marked";
 import twilio from "twilio";
 import { config } from "./config";
+import { getPageContent } from "./cms";
 import { parseStoredPhone, toE164 } from "./phone";
 
 const APP_NAME = "American Jews for Democracy";
 const LINK_EXPIRY_NOTE =
   "This link expires in 24 hours. If you did not request it, you can ignore this message.";
+const NOTIFICATIONS_PAGE = "Notifications";
+
+const DEFAULT_UPDATE_SUBJECT = `Update your information - ${APP_NAME}`;
+const DEFAULT_UPDATE_BODY = [
+  `${APP_NAME}`,
+  "",
+  "Use this link to update your information:",
+  "{{update_url}}",
+  "",
+  "{{link_expiry_note}}",
+].join("\n");
+
+const DEFAULT_SIGNUP_SUBJECT = `Confirm your signup - ${APP_NAME}`;
+const DEFAULT_SIGNUP_BODY = [
+  "Hi {{name}},",
+  "",
+  `Thank you for signing up with ${APP_NAME}.`,
+  "",
+  "Please confirm your email by opening this link:",
+  "{{confirm_url}}",
+  "",
+  "{{link_expiry_note}}",
+].join("\n");
 
 /** Slugs we already delivered on this instance; pruned after link TTL to bound memory. */
 const DEDUPE_TTL_MS = 25 * 60 * 60 * 1000;
@@ -49,6 +75,56 @@ function trimEmail(value: string | undefined): string | undefined {
   return t;
 }
 
+function normalizeTemplate(input: string | undefined): string | undefined {
+  const trimmed = input?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function renderTemplate(
+  template: string,
+  variables: Record<string, string>
+): string {
+  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key) => {
+    return variables[key] ?? "";
+  });
+}
+
+function markdownToHtml(markdown: string): string {
+  return marked.parse(markdown, { async: false, breaks: true }) as string;
+}
+
+function markdownToText(markdown: string): string {
+  return markdown
+    .replace(/\r\n/g, "\n")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/[*_~>#-]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+type NotificationTemplates = {
+  updateSubject: string;
+  updateBodyMarkdown: string;
+  signupSubject: string;
+  signupBodyMarkdown: string;
+};
+
+async function loadNotificationTemplates(): Promise<NotificationTemplates> {
+  const sections = await getPageContent(NOTIFICATIONS_PAGE);
+  return {
+    updateSubject:
+      normalizeTemplate(sections.UpdateLinkSubject?.raw) ?? DEFAULT_UPDATE_SUBJECT,
+    updateBodyMarkdown:
+      normalizeTemplate(sections.UpdateLinkBody?.raw) ?? DEFAULT_UPDATE_BODY,
+    signupSubject:
+      normalizeTemplate(sections.SignupConfirmSubject?.raw) ??
+      DEFAULT_SIGNUP_SUBJECT,
+    signupBodyMarkdown:
+      normalizeTemplate(sections.SignupConfirmBody?.raw) ?? DEFAULT_SIGNUP_BODY,
+  };
+}
+
 /** Normalize stored or form phone to E.164 for Twilio. */
 function smsE164(value: string | undefined): string | undefined {
   const t = value?.trim();
@@ -61,7 +137,8 @@ function smsE164(value: string | undefined): string | undefined {
 async function sendEmail(
   to: string,
   subject: string,
-  text: string
+  text: string,
+  html?: string
 ): Promise<void> {
   const sg = config.sendgrid;
   if (!sg) return;
@@ -71,6 +148,7 @@ async function sendEmail(
     from: sg.fromEmail,
     subject,
     text,
+    ...(html ? { html } : {}),
   });
 }
 
@@ -110,27 +188,26 @@ async function sendUpdateLinkBody(options: {
 }): Promise<void> {
   if (wasDelivered(options.linkSlug)) return;
 
+  const templates = await loadNotificationTemplates();
   const email = trimEmail(options.toEmail);
   const phone = smsE164(options.toPhone);
   const idNote =
     options.userId !== undefined ? `user ${options.userId}` : "user";
-
-  const textBody = [
-    `${APP_NAME}`,
-    "",
-    "Use this link to update your information:",
-    options.updateUrl,
-    "",
-    LINK_EXPIRY_NOTE,
-  ].join("\n");
+  const renderedMarkdown = renderTemplate(templates.updateBodyMarkdown, {
+    app_name: APP_NAME,
+    update_url: options.updateUrl,
+    link_expiry_note: LINK_EXPIRY_NOTE,
+  });
+  const textBody = markdownToText(renderedMarkdown);
+  const htmlBody = markdownToHtml(renderedMarkdown);
+  const subject = renderTemplate(templates.updateSubject, {
+    app_name: APP_NAME,
+    update_url: options.updateUrl,
+  });
 
   if (email && config.sendgrid) {
     try {
-      await sendEmail(
-        email,
-        `Update your information — ${APP_NAME}`,
-        textBody
-      );
+      await sendEmail(email, subject, textBody, htmlBody);
       markDelivered(options.linkSlug);
       return;
     } catch (err) {
@@ -180,29 +257,28 @@ async function sendSignupConfirmationBody(options: {
 }): Promise<void> {
   if (wasDelivered(options.linkSlug)) return;
 
+  const templates = await loadNotificationTemplates();
   const email = trimEmail(options.toEmail);
   const phone = smsE164(options.toPhone);
   const idNote =
     options.userId !== undefined ? `user ${options.userId}` : "user";
-
-  const textBody = [
-    `Hi ${options.name},`,
-    "",
-    `Thank you for signing up with ${APP_NAME}.`,
-    "",
-    "Please confirm your email by opening this link:",
-    options.confirmUrl,
-    "",
-    LINK_EXPIRY_NOTE,
-  ].join("\n");
+  const renderedMarkdown = renderTemplate(templates.signupBodyMarkdown, {
+    app_name: APP_NAME,
+    name: options.name,
+    confirm_url: options.confirmUrl,
+    link_expiry_note: LINK_EXPIRY_NOTE,
+  });
+  const textBody = markdownToText(renderedMarkdown);
+  const htmlBody = markdownToHtml(renderedMarkdown);
+  const subject = renderTemplate(templates.signupSubject, {
+    app_name: APP_NAME,
+    name: options.name,
+    confirm_url: options.confirmUrl,
+  });
 
   if (email && config.sendgrid) {
     try {
-      await sendEmail(
-        email,
-        `Confirm your signup — ${APP_NAME}`,
-        textBody
-      );
+      await sendEmail(email, subject, textBody, htmlBody);
       markDelivered(options.linkSlug);
       return;
     } catch (err) {
