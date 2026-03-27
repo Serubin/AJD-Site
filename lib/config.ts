@@ -84,7 +84,7 @@ export const config = {
   },
 
   /**
-   * Users feature (table/view IDs). Required for get-involved / users.
+   * Users feature (table/view IDs). Required for join-us / users.
    * Env: nocodb__users__table_id, nocodb__users__view_id.
    */
   get users(): { tableId: string; viewId: string } {

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (user.Id) {
       const link = await createPresignedLink(user.Id);
       const baseUrl = config.app.baseUrl;
-      const confirmUrl = `${baseUrl}/get-involved/confirm/${link.Slug}`;
+      const confirmUrl = `${baseUrl}/join-us/confirm/${link.Slug}`;
       console.log(
         `[Signup Confirm] Confirmation link for user ${user.Id}: ${confirmUrl}`
       );

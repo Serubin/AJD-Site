@@ -1,8 +1,14 @@
-import { getGetInvolvedFormProps } from "@/components/pages/getInvolved/util";
-import { GetInvolvedForm } from "@/components/pages/getInvolved/GetInvolvedForm";
-
-export default async function GetInvolved() {
-  const { statusContent, whatsappLink } = await getGetInvolvedFormProps();
-
-  return <GetInvolvedForm mode="create" statusContent={statusContent} whatsappLink={whatsappLink} />;
+export default function GetInvolved() {
+  return (
+    <main className="flex-grow pt-32 pb-20 px-4 sm:px-6 flex items-center justify-center">
+      <div className="max-w-3xl mx-auto text-center">
+        <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
+          Get Involved
+        </h1>
+        <p className="text-lg text-muted-foreground font-serif leading-relaxed">
+          Find ways to support our candidates and make a difference in your community.
+        </p>
+      </div>
+    </main>
+  );
 }

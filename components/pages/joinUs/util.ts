@@ -3,11 +3,11 @@ import { getPageContent } from "@/lib/cms";
 import {
   defaultStatusContent,
   type StatusPanelContent,
-} from "@/components/pages/getInvolved/status/statusPanelContent";
+} from "@/components/pages/joinUs/status/statusPanelContent";
 
 type SectionShape = { title?: string; body?: string };
 
-export async function getGetInvolvedFormProps(): Promise<{
+export async function getJoinUsFormProps(): Promise<{
   statusContent: StatusPanelContent;
   whatsappLink: string | undefined;
 }> {
