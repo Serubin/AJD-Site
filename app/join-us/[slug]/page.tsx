@@ -1,25 +1,25 @@
 import { redirect } from "next/navigation";
 import { expireLink, findValidLink } from "@/lib/presignedLinks";
 import { findUserById, updateUserVerified } from "@/lib/users";
-import { getGetInvolvedFormProps } from "@/components/pages/getInvolved/util";
+import { getJoinUsFormProps } from "@/components/pages/joinUs/util";
 import { parseStoredPhone } from "@/lib/phone";
-import { GetInvolvedForm } from "@/components/pages/getInvolved/GetInvolvedForm";
+import { JoinUsForm } from "@/components/pages/joinUs/JoinUsForm";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function GetInvolvedUpdate({ params }: PageProps) {
+export default async function JoinUsUpdate({ params }: PageProps) {
   const { slug } = await params;
 
   const link = await findValidLink(slug);
   if (!link) {
-    redirect("/get-involved");
+    redirect("/join-us");
   }
 
   const user = await findUserById(link.User.Id);
   if (!user) {
-    redirect("/get-involved");
+    redirect("/join-us");
   }
 
   await updateUserVerified(user.Id!, true);
@@ -35,10 +35,10 @@ export default async function GetInvolvedUpdate({ params }: PageProps) {
     congressionalDistrict: user.CongressionalDistrict ?? "",
   };
 
-  const { statusContent, whatsappLink } = await getGetInvolvedFormProps();
+  const { statusContent, whatsappLink } = await getJoinUsFormProps();
 
   return (
-    <GetInvolvedForm
+    <JoinUsForm
       mode="update"
       slug={slug}
       initialData={initialData}

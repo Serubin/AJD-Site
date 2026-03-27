@@ -1,34 +1,34 @@
 import { redirect } from "next/navigation";
 import { findValidLink, expireLink } from "@/lib/presignedLinks";
 import { findUserById, updateUserVerified } from "@/lib/users";
-import { getGetInvolvedFormProps } from "@/components/pages/getInvolved/util";
+import { getJoinUsFormProps } from "@/components/pages/joinUs/util";
 import {
   FormStatusPanel,
   defaultStatusContent,
-} from "@/components/pages/getInvolved/status/FormStatusPanel";
+} from "@/components/pages/joinUs/status/FormStatusPanel";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function GetInvolvedConfirm({ params }: PageProps) {
+export default async function JoinUsConfirm({ params }: PageProps) {
   const { slug } = await params;
 
   const link = await findValidLink(slug);
   if (!link || !link.Id) {
-    redirect("/get-involved");
+    redirect("/join-us");
   }
 
   const user = await findUserById(link.User.Id);
   if (!user) {
-    redirect("/get-involved");
+    redirect("/join-us");
   }
 
   await updateUserVerified(user.Id!, true);
   await expireLink(link.Id);
 
-  const { statusContent, whatsappLink } = await getGetInvolvedFormProps();
+  const { statusContent, whatsappLink } = await getJoinUsFormProps();
   const resolvedContent = statusContent ?? defaultStatusContent;
 
   return (

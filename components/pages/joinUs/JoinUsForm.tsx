@@ -18,14 +18,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { StateMultiSelect } from "@/components/pages/getInvolved/fields/StateMultiSelect";
-import { CongressionalDistrictInput } from "@/components/pages/getInvolved/fields/CongressionalDistrictInput";
-import { PhoneInput } from "@/components/pages/getInvolved/fields/PhoneInput";
+import { StateMultiSelect } from "@/components/pages/joinUs/fields/StateMultiSelect";
+import { CongressionalDistrictInput } from "@/components/pages/joinUs/fields/CongressionalDistrictInput";
+import { PhoneInput } from "@/components/pages/joinUs/fields/PhoneInput";
 import {
   FormStatusPanel,
   defaultStatusContent,
   type StatusPanelContent,
-} from "@/components/pages/getInvolved/status/FormStatusPanel";
+} from "@/components/pages/joinUs/status/FormStatusPanel";
 import { usePlausible } from 'next-plausible';
 
 interface FormErrors {
@@ -36,7 +36,7 @@ interface FormErrors {
   congressionalDistrict?: string;
 }
 
-export interface GetInvolvedFormInitialData {
+export interface JoinUsFormInitialData {
   name: string;
   email: string;
   phoneCountryCode: string;
@@ -45,9 +45,9 @@ export interface GetInvolvedFormInitialData {
   congressionalDistrict: string;
 }
 
-interface GetInvolvedFormProps {
+interface JoinUsFormProps {
   mode: "create" | "update";
-  initialData?: GetInvolvedFormInitialData;
+  initialData?: JoinUsFormInitialData;
   slug?: string;
   statusContent?: StatusPanelContent;
   whatsappLink?: string;
@@ -125,7 +125,7 @@ function SubmitButtonContent({
   );
 }
 
-export function GetInvolvedForm({ mode, initialData, slug, statusContent, whatsappLink }: GetInvolvedFormProps) {
+export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLink }: JoinUsFormProps) {
   const plausible = usePlausible();
   const resolvedStatusContent = statusContent ?? defaultStatusContent;
   const { toast } = useToast();

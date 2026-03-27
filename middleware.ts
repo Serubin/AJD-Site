@@ -23,5 +23,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/get-involved/:path*", "/api/congressional-district", "/api/users", "/api/presigned-links"],
+  matcher: ["/join-us/:path*", "/api/congressional-district", "/api/users", "/api/presigned-links"],
 };

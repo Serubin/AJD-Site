@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const link = await createPresignedLink(user.Id);
     const baseUrl = config.app.baseUrl;
     console.log(
-      `[Presigned Link] Update link for user ${user.Id}: ${baseUrl}/get-involved/${link.Slug}`
+      `[Presigned Link] Update link for user ${user.Id}: ${baseUrl}/join-us/${link.Slug}`
     );
 
     return NextResponse.json({ success: true });

@@ -1,5 +1,5 @@
 /**
- * Phone normalization and formatting for the get-involved form.
+ * Phone normalization and formatting for the join-us form.
  * US display format (xxx) xxx-xxxx; storage as E.164 so API/NocoDB stay unchanged.
  */
 

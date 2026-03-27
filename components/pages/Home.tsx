@@ -71,9 +71,9 @@ export default function HomePage({ tagline }: HomePageProps) {
                 Our Mission
               </Button>
             </Link>
-            <Link href="/get-involved" className="hidden sm:block">
+            <Link href="/join-us" className="hidden sm:block">
               <Button size="lg" className="w-full sm:w-auto min-w-[160px] bg-primary hover:bg-primary/90 text-background font-bold tracking-wide shadow-lg shadow-primary/20">
-                Get Involved
+                Join Us
               </Button>
             </Link>
           </motion.div>
