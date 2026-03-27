@@ -4,6 +4,16 @@ import { config } from "@/lib/config";
 export const CSRF_COOKIE_NAME = "csrf_token";
 export const CSRF_HEADER_NAME = "x-csrf-token";
 
+/** Read the CSRF token from the browser cookie. Client-side only. */
+export function getCsrfToken(): string {
+  return (
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${CSRF_COOKIE_NAME}=`))
+      ?.split("=")[1] ?? ""
+  );
+}
+
 export function generateCsrfToken(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
