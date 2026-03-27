@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
+import { sendUpdateLink } from "@/lib/notifications";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
 import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
 
@@ -36,11 +37,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const link = await createPresignedLink(user.Id);
+    const { link, isNew } = await createPresignedLink(user.Id);
     const baseUrl = config.app.baseUrl;
-    console.log(
-      `[Presigned Link] Update link for user ${user.Id}: ${baseUrl}/join-us/${link.Slug}`
-    );
+    const updateUrl = `${baseUrl}/join-us/${link.Slug}`;
+    if (isNew) {
+      await sendUpdateLink({
+        linkSlug: link.Slug,
+        toEmail: user.Email || undefined,
+        toPhone: user.Phone || undefined,
+        updateUrl,
+        userId: user.Id,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

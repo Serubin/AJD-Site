@@ -19,6 +19,11 @@ const envSchema = z.object({
   nocodb__presigned_links__view_id: z.string().optional(),
   features__whatsapp_link: z.string().optional(),
   features__geocodio_api_key: z.string().optional(),
+  twilio__sendgrid_api_key: z.string().optional(),
+  twilio__from_email: z.string().optional(),
+  twilio__account_sid: z.string().optional(),
+  twilio__auth_token: z.string().optional(),
+  twilio__messaging_phone_number: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -42,6 +47,12 @@ function getEnv(): Env {
       process.env.nocodb__presigned_links__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
+    twilio__sendgrid_api_key: process.env.twilio__sendgrid_api_key,
+    twilio__from_email: process.env.twilio__from_email,
+    twilio__account_sid: process.env.twilio__account_sid,
+    twilio__auth_token: process.env.twilio__auth_token,
+    twilio__messaging_phone_number:
+      process.env.twilio__messaging_phone_number,
   });
   return cachedEnv;
 }
@@ -143,5 +154,34 @@ export const config = {
       e.features__whatsapp_link ?? undefined,
       geocodioApiKey: e.features__geocodio_api_key,
     };
+  },
+
+  /**
+   * Twilio SendGrid (email). All fields required to send; otherwise null (no-op in dev).
+   * Env: twilio__sendgrid_api_key, twilio__from_email (verified sender in SendGrid).
+   */
+  get sendgrid(): { apiKey: string; fromEmail: string } | null {
+    const e = getEnv();
+    const apiKey = e.twilio__sendgrid_api_key?.trim();
+    const fromEmail = e.twilio__from_email?.trim();
+    if (!apiKey || !fromEmail) return null;
+    return { apiKey, fromEmail };
+  },
+
+  /**
+   * Twilio SMS. All fields required to send; otherwise null.
+   * Env: twilio__account_sid, twilio__auth_token, twilio__messaging_phone_number.
+   */
+  get twilioSms(): {
+    accountSid: string;
+    authToken: string;
+    messagingPhoneNumber: string;
+  } | null {
+    const e = getEnv();
+    const accountSid = e.twilio__account_sid?.trim();
+    const authToken = e.twilio__auth_token?.trim();
+    const messagingPhoneNumber = e.twilio__messaging_phone_number?.trim();
+    if (!accountSid || !authToken || !messagingPhoneNumber) return null;
+    return { accountSid, authToken, messagingPhoneNumber };
   },
 };
