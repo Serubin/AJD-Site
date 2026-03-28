@@ -3,19 +3,13 @@ import {
   type PresignedLinkRecord,
 } from "./nocodb/PresignedLinksDAO";
 import { runExclusive } from "./runExclusive";
+import { lazyInit } from "./utils";
 
 export type { PresignedLinkRecord };
 
 const LINK_EXPIRY_HOURS = 24;
 
-let dao: PresignedLinksDAO | null = null;
-
-function getDAO(): PresignedLinksDAO {
-  if (!dao) {
-    dao = new PresignedLinksDAO();
-  }
-  return dao;
-}
+const getDAO = lazyInit(() => new PresignedLinksDAO());
 
 export type CreatePresignedLinkResult = {
   link: PresignedLinkRecord;

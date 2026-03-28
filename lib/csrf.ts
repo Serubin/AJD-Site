@@ -14,6 +14,19 @@ export function getCsrfToken(): string {
   );
 }
 
+/** Wrapper around fetch that injects CSRF token and JSON content-type headers. Client-side only. */
+export function csrfFetch(
+  url: string,
+  options?: RequestInit,
+): Promise<Response> {
+  const headers = new Headers(options?.headers);
+  headers.set(CSRF_HEADER_NAME, getCsrfToken());
+  if (options?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  return fetch(url, { ...options, headers });
+}
+
 export function generateCsrfToken(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);

@@ -5,7 +5,7 @@ export function normalizeTemplate(
   input: string | undefined,
 ): string | undefined {
   const trimmed = input?.trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed || undefined;
 }
 
 /** Mustache-style `{{var}}` substitution. Unknown keys become empty strings. */

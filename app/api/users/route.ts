@@ -4,6 +4,12 @@ import { sendSignupConfirmation } from "@/lib/notifications";
 import { createPresignedLink } from "@/lib/presignedLinks";
 import { runExclusive } from "@/lib/runExclusive";
 import { createUser, findUser, checkEmailPhoneUniqueness } from "@/lib/users";
+import {
+  parseJsonBody,
+  joinUsPayloadSchema,
+  buildConflictResponse,
+  handleApiError,
+} from "@/lib/api";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
   if (!email && !phone) {
     return NextResponse.json(
       { error: "Email or phone is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -25,70 +31,36 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ found: true });
   } catch (error) {
-    console.error("Failed to find user:", error);
-    return NextResponse.json(
-      { error: "Failed to find user" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to find user");
   }
 }
 
 export async function POST(request: NextRequest) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body" },
-      { status: 400 }
-    );
+  const bodyOrError = await parseJsonBody(request);
+  if (bodyOrError instanceof NextResponse) return bodyOrError;
+
+  const parsed = joinUsPayloadSchema.safeParse(bodyOrError);
+  if (!parsed.success) {
+    const first = parsed.error.errors[0];
+    return NextResponse.json({ error: first.message }, { status: 400 });
   }
 
-  const { name, email, phone, states, congressionalDistrict } = body as Record<string, unknown>;
-
-  if (!name || typeof name !== "string") {
-    return NextResponse.json({ error: "Name is required" }, { status: 400 });
-  }
-
-  if (!email || typeof email !== "string") {
-    return NextResponse.json({ error: "Email is required" }, { status: 400 });
-  }
-
-  const phoneValue =
-    typeof phone === "string" ? phone : "";
-
-  if (!Array.isArray(states) || states.length === 0) {
-    return NextResponse.json({ error: "At least one state is required" }, { status: 400 });
-  }
-
+  const { name, email, phone, states, congressionalDistrict } = parsed.data;
   const signupKey = `signup:${email.trim().toLowerCase()}`;
 
   try {
     return await runExclusive(signupKey, async () => {
-      const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
-        email,
-        phoneValue
-      );
+      const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(email, phone);
       if (emailTaken || phoneTaken) {
-        const errors: Record<string, string> = {};
-        if (emailTaken) errors.email = "This email is already registered.";
-        if (phoneTaken) errors.phone = "This phone number is already registered.";
-        const error =
-          emailTaken && phoneTaken
-            ? "This email and phone number are already registered."
-            : emailTaken
-              ? "This email is already registered."
-              : "This phone number is already registered.";
-        return NextResponse.json({ error, errors }, { status: 409 });
+        return buildConflictResponse(emailTaken, phoneTaken);
       }
 
       const user = await createUser({
         name,
         email,
-        phone: phoneValue,
-        states: states as string[],
-        congressionalDistrict:
-          typeof congressionalDistrict === "string" ? congressionalDistrict : "",
+        phone,
+        states,
+        congressionalDistrict,
       });
 
       if (user.Id) {
@@ -99,7 +71,7 @@ export async function POST(request: NextRequest) {
           await sendSignupConfirmation({
             linkSlug: link.Slug,
             toEmail: email,
-            toPhone: phoneValue || undefined,
+            toPhone: phone || undefined,
             name,
             confirmUrl,
             userId: user.Id,
@@ -110,10 +82,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, user }, { status: 201 });
     });
   } catch (error) {
-    console.error("Failed to create user:", error);
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to create user");
   }
 }

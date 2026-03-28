@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { getCsrfToken, CSRF_HEADER_NAME } from "@/lib/csrf";
+import { csrfFetch } from "@/lib/csrf";
 import { toE164 } from "@/lib/phone";
 import { useToast } from "@/hooks/use-toast";
 import { usePlausible } from "next-plausible";
@@ -37,9 +37,7 @@ export function useUserLookup({ enabled }: UseUserLookupOptions) {
       if (normalizedPhone) params.set("phone", normalizedPhone);
 
       try {
-        const res = await fetch(`/api/users?${params.toString()}`, {
-          headers: { [CSRF_HEADER_NAME]: getCsrfToken() },
-        });
+        const res = await csrfFetch(`/api/users?${params.toString()}`);
         if (!res.ok) return;
 
         const data = await res.json();
@@ -47,12 +45,8 @@ export function useUserLookup({ enabled }: UseUserLookupOptions) {
 
         setIsLookingUp(true);
         try {
-          const linkRes = await fetch("/api/presigned-links", {
+          const linkRes = await csrfFetch("/api/presigned-links", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              [CSRF_HEADER_NAME]: getCsrfToken(),
-            },
             body: JSON.stringify({
               email: currentEmail.trim() || undefined,
               phone: normalizedPhone || undefined,

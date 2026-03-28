@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import ReactMarkdown, { Components } from "react-markdown";
 import { CMSSection, TeamMember } from "@/lib/cms";
 import { Markdown } from '@/components/MarkdownWrapper';
 

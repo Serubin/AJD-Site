@@ -11,6 +11,91 @@ function trimEmail(value: string | undefined): string | undefined {
   return t;
 }
 
+interface NotificationOptions {
+  linkSlug: string;
+  toEmail?: string;
+  toPhone?: string;
+  userId?: number;
+}
+
+interface UpdateOptions extends NotificationOptions {
+  kind: "update";
+  updateUrl: string;
+}
+
+interface SignupOptions extends NotificationOptions {
+  kind: "signup";
+  name: string;
+  confirmUrl: string;
+}
+
+type SendOptions = UpdateOptions | SignupOptions;
+
+function resolveTemplateVars(opts: SendOptions): Record<string, string> {
+  const base = { app_name: APP_NAME, link_expiry_note: LINK_EXPIRY_NOTE };
+  if (opts.kind === "update") {
+    return { ...base, update_url: opts.updateUrl };
+  }
+  return { ...base, name: opts.name, confirm_url: opts.confirmUrl };
+}
+
+function resolveSmsBody(opts: SendOptions): string {
+  if (opts.kind === "update") {
+    return `${APP_NAME}: Update your info: ${opts.updateUrl} (${LINK_EXPIRY_NOTE})`;
+  }
+  return `${APP_NAME}: Hi ${opts.name}, confirm signup: ${opts.confirmUrl}`;
+}
+
+function resolveLogPrefix(opts: SendOptions): string {
+  return opts.kind === "update" ? "[Presigned Link]" : "[Signup Confirm]";
+}
+
+function resolveUrl(opts: SendOptions): string {
+  return opts.kind === "update" ? opts.updateUrl : opts.confirmUrl;
+}
+
+async function sendNotificationBody(opts: SendOptions): Promise<void> {
+  if (wasDelivered(opts.linkSlug)) return;
+
+  const templates = await loadNotificationTemplates();
+  const email = trimEmail(opts.toEmail);
+  const phone = smsE164(opts.toPhone);
+  const idNote = opts.userId !== undefined ? `user ${opts.userId}` : "user";
+
+  const subjectKey = opts.kind === "update" ? "updateSubject" : "signupSubject";
+  const bodyKey = opts.kind === "update" ? "updateBodyMarkdown" : "signupBodyMarkdown";
+  const vars = resolveTemplateVars(opts);
+
+  const renderedMarkdown = renderTemplate(templates[bodyKey], vars);
+  const textBody = markdownToText(renderedMarkdown);
+  const htmlBody = markdownToHtml(renderedMarkdown);
+  const subject = renderTemplate(templates[subjectKey], vars);
+
+  if (email && config.sendgrid) {
+    try {
+      await sendEmail(email, subject, textBody, htmlBody);
+      markDelivered(opts.linkSlug);
+      return;
+    } catch (err) {
+      console.error(`[notifications] SendGrid ${opts.kind} failed:`, err);
+    }
+  }
+
+  if (!email && phone && config.twilioSms) {
+    try {
+      await sendSms(phone, resolveSmsBody(opts));
+      markDelivered(opts.linkSlug);
+      return;
+    } catch (err) {
+      console.error(`[notifications] Twilio ${opts.kind} failed:`, err);
+    }
+  }
+
+  console.log(
+    `${resolveLogPrefix(opts)} Link for ${idNote} (no email/SMS sent): ${resolveUrl(opts)}`,
+  );
+}
+
 /**
  * Sends the presigned update link: email if a valid email exists, else SMS if phone is valid.
  * Same `linkSlug` is never delivered twice on this instance; concurrent calls share one attempt.
@@ -22,58 +107,8 @@ export async function sendUpdateLink(options: {
   updateUrl: string;
   userId?: number;
 }): Promise<void> {
-  return oncePerSlug(options.linkSlug, () => sendUpdateLinkBody(options));
-}
-
-async function sendUpdateLinkBody(options: {
-  linkSlug: string;
-  toEmail?: string;
-  toPhone?: string;
-  updateUrl: string;
-  userId?: number;
-}): Promise<void> {
-  if (wasDelivered(options.linkSlug)) return;
-
-  const templates = await loadNotificationTemplates();
-  const email = trimEmail(options.toEmail);
-  const phone = smsE164(options.toPhone);
-  const idNote =
-    options.userId !== undefined ? `user ${options.userId}` : "user";
-  const renderedMarkdown = renderTemplate(templates.updateBodyMarkdown, {
-    app_name: APP_NAME,
-    update_url: options.updateUrl,
-    link_expiry_note: LINK_EXPIRY_NOTE,
-  });
-  const textBody = markdownToText(renderedMarkdown);
-  const htmlBody = markdownToHtml(renderedMarkdown);
-  const subject = renderTemplate(templates.updateSubject, {
-    app_name: APP_NAME,
-    update_url: options.updateUrl,
-  });
-
-  if (email && config.sendgrid) {
-    try {
-      await sendEmail(email, subject, textBody, htmlBody);
-      markDelivered(options.linkSlug);
-      return;
-    } catch (err) {
-      console.error("[notifications] SendGrid sendUpdateLink failed:", err);
-    }
-  }
-
-  if (!email && phone && config.twilioSms) {
-    try {
-      const smsBody = `${APP_NAME}: Update your info: ${options.updateUrl} (${LINK_EXPIRY_NOTE})`;
-      await sendSms(phone, smsBody);
-      markDelivered(options.linkSlug);
-      return;
-    } catch (err) {
-      console.error("[notifications] Twilio sendUpdateLink failed:", err);
-    }
-  }
-
-  console.log(
-    `[Presigned Link] Update link for ${idNote} (no email/SMS sent): ${options.updateUrl}`,
+  return oncePerSlug(options.linkSlug, () =>
+    sendNotificationBody({ kind: "update", ...options }),
   );
 }
 
@@ -89,67 +124,6 @@ export async function sendSignupConfirmation(options: {
   userId?: number;
 }): Promise<void> {
   return oncePerSlug(options.linkSlug, () =>
-    sendSignupConfirmationBody(options),
-  );
-}
-
-async function sendSignupConfirmationBody(options: {
-  linkSlug: string;
-  toEmail?: string;
-  toPhone?: string;
-  name: string;
-  confirmUrl: string;
-  userId?: number;
-}): Promise<void> {
-  if (wasDelivered(options.linkSlug)) return;
-
-  const templates = await loadNotificationTemplates();
-  const email = trimEmail(options.toEmail);
-  const phone = smsE164(options.toPhone);
-  const idNote =
-    options.userId !== undefined ? `user ${options.userId}` : "user";
-  const renderedMarkdown = renderTemplate(templates.signupBodyMarkdown, {
-    app_name: APP_NAME,
-    name: options.name,
-    confirm_url: options.confirmUrl,
-    link_expiry_note: LINK_EXPIRY_NOTE,
-  });
-  const textBody = markdownToText(renderedMarkdown);
-  const htmlBody = markdownToHtml(renderedMarkdown);
-  const subject = renderTemplate(templates.signupSubject, {
-    app_name: APP_NAME,
-    name: options.name,
-    confirm_url: options.confirmUrl,
-  });
-
-  if (email && config.sendgrid) {
-    try {
-      await sendEmail(email, subject, textBody, htmlBody);
-      markDelivered(options.linkSlug);
-      return;
-    } catch (err) {
-      console.error(
-        "[notifications] SendGrid sendSignupConfirmation failed:",
-        err,
-      );
-    }
-  }
-
-  if (!email && phone && config.twilioSms) {
-    try {
-      const smsBody = `${APP_NAME}: Hi ${options.name}, confirm signup: ${options.confirmUrl}`;
-      await sendSms(phone, smsBody);
-      markDelivered(options.linkSlug);
-      return;
-    } catch (err) {
-      console.error(
-        "[notifications] Twilio sendSignupConfirmation failed:",
-        err,
-      );
-    }
-  }
-
-  console.log(
-    `[Signup Confirm] Confirmation link for ${idNote} (no email/SMS sent): ${options.confirmUrl}`,
+    sendNotificationBody({ kind: "signup", ...options }),
   );
 }

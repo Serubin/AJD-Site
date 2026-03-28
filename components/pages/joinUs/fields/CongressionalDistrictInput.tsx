@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 
-import { getCsrfToken, CSRF_HEADER_NAME } from "@/lib/csrf";
+import { csrfFetch } from "@/lib/csrf";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,9 +54,8 @@ export function CongressionalDistrictInput({ error, value, onDistrictChange, opt
 
       const { latitude, longitude } = position.coords;
 
-      const res = await fetch(
+      const res = await csrfFetch(
         `/api/congressional-district?lat=${latitude}&lng=${longitude}`,
-        { headers: { [CSRF_HEADER_NAME]: getCsrfToken() } }
       );
 
       if (!res.ok) {

@@ -1,16 +1,9 @@
-import { config } from "./config";
 import { UsersDAO, type CreateUserInput, type UserRecord } from "./nocodb/UsersDAO";
+import { lazyInit } from "./utils";
 
 export type { CreateUserInput, UserRecord };
 
-let users: UsersDAO | null = null;
-
-function getUsersDAO(): UsersDAO {
-  if (!users) {
-    users = new UsersDAO();
-  }
-  return users;
-}
+const getUsersDAO = lazyInit(() => new UsersDAO());
 
 export async function createUser(input: CreateUserInput): Promise<UserRecord> {
   const dao = getUsersDAO();
