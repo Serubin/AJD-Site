@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
-import { expireLink, findValidLink } from "@/lib/presignedLinks";
-import { findUserById, updateUserVerified } from "@/lib/users";
+import { loadUserFromValidLink } from "@/lib/joinUsLinks";
 import { getJoinUsFormProps } from "@/components/pages/joinUs/util";
 import { parseStoredPhone } from "@/lib/phone";
 import { JoinUsForm } from "@/components/pages/joinUs/JoinUsForm";
@@ -11,18 +9,7 @@ interface PageProps {
 
 export default async function JoinUsUpdate({ params }: PageProps) {
   const { slug } = await params;
-
-  const link = await findValidLink(slug);
-  if (!link) {
-    redirect("/join-us");
-  }
-
-  const user = await findUserById(link.User.Id);
-  if (!user) {
-    redirect("/join-us");
-  }
-
-  await updateUserVerified(user.Id!, true);
+  const { user } = await loadUserFromValidLink(slug);
 
   const { countryCode, nationalDigits } = parseStoredPhone(user.Phone ?? "");
 

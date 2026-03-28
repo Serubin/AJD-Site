@@ -14,18 +14,6 @@ export interface CMSSection {
   parsed: unknown;
 }
 
-export interface CMSResponse {
-  list: CMSRecord[];
-  pageInfo: {
-    totalRows: number;
-    page: number;
-    pageSize: number;
-    isFirstPage: boolean;
-    isLastPage: boolean;
-  };
-}
-
-
 // About Page
 export interface TeamMember {
   name: string;

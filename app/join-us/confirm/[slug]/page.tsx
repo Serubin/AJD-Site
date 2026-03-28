@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { findValidLink, expireLink } from "@/lib/presignedLinks";
-import { findUserById, updateUserVerified } from "@/lib/users";
+import { expireLink } from "@/lib/presignedLinks";
+import { loadUserFromValidLink } from "@/lib/joinUsLinks";
 import { getJoinUsFormProps } from "@/components/pages/joinUs/util";
 import {
   FormStatusPanel,
@@ -14,19 +13,8 @@ interface PageProps {
 
 export default async function JoinUsConfirm({ params }: PageProps) {
   const { slug } = await params;
-
-  const link = await findValidLink(slug);
-  if (!link || !link.Id) {
-    redirect("/join-us");
-  }
-
-  const user = await findUserById(link.User.Id);
-  if (!user) {
-    redirect("/join-us");
-  }
-
-  await updateUserVerified(user.Id!, true);
-  await expireLink(link.Id);
+  const { link } = await loadUserFromValidLink(slug);
+  await expireLink(link.Id!);
 
   const { statusContent, whatsappLink } = await getJoinUsFormProps();
   const resolvedContent = statusContent ?? defaultStatusContent;

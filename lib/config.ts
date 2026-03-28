@@ -57,6 +57,19 @@ function getEnv(): Env {
   return cachedEnv;
 }
 
+function requireTableView(
+  tableId: string | undefined,
+  viewId: string | undefined,
+  feature: string,
+): { tableId: string; viewId: string } {
+  if (!tableId || !viewId) {
+    throw new Error(
+      `Missing ${feature} configuration: both table_id and view_id must be set`,
+    );
+  }
+  return { tableId, viewId };
+}
+
 /**
  * Centralized config. All values are read from env vars named
  * component__variable_name. Lazy validation: getters throw only when
@@ -94,54 +107,25 @@ export const config = {
     };
   },
 
-  /**
-   * Users feature (table/view IDs). Required for join-us / users.
-   * Env: nocodb__users__table_id, nocodb__users__view_id.
-   */
   get users(): { tableId: string; viewId: string } {
     const e = getEnv();
-    if (!e.nocodb__users__table_id || !e.nocodb__users__view_id) {
-      throw new Error(
-        "Missing Users configuration: nocodb__users__table_id and nocodb__users__view_id must be set"
-      );
-    }
-    return {
-      tableId: e.nocodb__users__table_id,
-      viewId: e.nocodb__users__view_id,
-    };
+    return requireTableView(e.nocodb__users__table_id, e.nocodb__users__view_id, "Users");
   },
 
-  /**
-   * CMS feature (table/view IDs). Optional; returns null if not set.
-   * Env: nocodb__cms__table_id, nocodb__cms__view_id.
-   */
+  /** CMS feature. Optional; returns null if not set. */
   get cms(): { tableId: string; viewId: string } | null {
     const e = getEnv();
     if (!e.nocodb__cms__table_id || !e.nocodb__cms__view_id) return null;
-    return {
-      tableId: e.nocodb__cms__table_id,
-      viewId: e.nocodb__cms__view_id,
-    };
+    return { tableId: e.nocodb__cms__table_id, viewId: e.nocodb__cms__view_id };
   },
 
-  /**
-   * Presigned links feature (table/view IDs). Required when using presigned links.
-   * Env: nocodb__presigned_links__table_id, nocodb__presigned_links__view_id.
-   */
   get presignedLinks(): { tableId: string; viewId: string } {
     const e = getEnv();
-    if (
-      !e.nocodb__presigned_links__table_id ||
-      !e.nocodb__presigned_links__view_id
-    ) {
-      throw new Error(
-        "Missing PresignedLinks configuration: nocodb__presigned_links__table_id and nocodb__presigned_links__view_id must be set"
-      );
-    }
-    return {
-      tableId: e.nocodb__presigned_links__table_id,
-      viewId: e.nocodb__presigned_links__view_id,
-    };
+    return requireTableView(
+      e.nocodb__presigned_links__table_id,
+      e.nocodb__presigned_links__view_id,
+      "PresignedLinks",
+    );
   },
 
   /**

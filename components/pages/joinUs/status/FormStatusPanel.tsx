@@ -14,25 +14,15 @@ interface FormStatusPanelProps {
   whatsappLink?: string;
 }
 
-function getTitle(
-  variant: FormStatusPanelProps["variant"],
-  content: StatusPanelContent
-): string {
-  if (variant === "signUp") return content.signUpTitle;
-  if (variant === "update") return content.updateTitle;
-  if (variant === "confirmEmail") return content.confirmEmailTitle;
-  return content.linkSentTitle;
-}
-
-function getBody(
-  variant: FormStatusPanelProps["variant"],
-  content: StatusPanelContent
-): string {
-  if (variant === "signUp") return content.signUpBody;
-  if (variant === "update") return content.updateBody;
-  if (variant === "confirmEmail") return content.confirmEmailBody;
-  return content.linkSentBody;
-}
+const VARIANT_KEYS: Record<
+  FormStatusPanelProps["variant"],
+  { title: keyof StatusPanelContent; body: keyof StatusPanelContent }
+> = {
+  signUp:       { title: "signUpTitle",       body: "signUpBody" },
+  update:       { title: "updateTitle",       body: "updateBody" },
+  confirmEmail: { title: "confirmEmailTitle", body: "confirmEmailBody" },
+  linkSent:     { title: "linkSentTitle",     body: "linkSentBody" },
+};
 
 function StatusIcon({ variant }: { variant: FormStatusPanelProps["variant"] }) {
   if (variant === "linkSent" || variant === "confirmEmail") {
@@ -59,10 +49,10 @@ export function FormStatusPanel({ variant, content, whatsappLink }: FormStatusPa
     <>
       <StatusIcon variant={variant} />
       <h2 className="text-2xl font-display font-bold text-white">
-        {getTitle(variant, content)}
+        {content[VARIANT_KEYS[variant].title]}
       </h2>
       <p className="text-muted-foreground font-serif leading-relaxed max-w-sm">
-        {getBody(variant, content)}
+        {content[VARIANT_KEYS[variant].body]}
       </p>
       {showWhatsapp && (
         <CopyText
