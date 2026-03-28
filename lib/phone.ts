@@ -60,3 +60,12 @@ export function parseStoredPhone(
   // Legacy: no +, assume US 10-digit national
   return { countryCode: "1", nationalDigits: digits.slice(0, 10) };
 }
+
+/** Normalize a stored or form phone value to E.164 for Twilio; undefined if invalid. */
+export function smsE164(value: string | undefined): string | undefined {
+  const t = value?.trim();
+  if (!t) return undefined;
+  const { countryCode, nationalDigits } = parseStoredPhone(t);
+  const e164 = toE164(countryCode, nationalDigits);
+  return e164 || undefined;
+}
