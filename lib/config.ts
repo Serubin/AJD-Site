@@ -17,6 +17,8 @@ const envSchema = z.object({
   nocodb__cms__view_id: z.string().optional(),
   nocodb__presigned_links__table_id: z.string().optional(),
   nocodb__presigned_links__view_id: z.string().optional(),
+  nocodb__candidates__table_id: z.string().optional(),
+  nocodb__candidates__view_id: z.string().optional(),
   features__whatsapp_link: z.string().optional(),
   features__geocodio_api_key: z.string().optional(),
   twilio__sendgrid_api_key: z.string().optional(),
@@ -45,6 +47,8 @@ function getEnv(): Env {
       process.env.nocodb__presigned_links__table_id,
     nocodb__presigned_links__view_id:
       process.env.nocodb__presigned_links__view_id,
+    nocodb__candidates__table_id: process.env.nocodb__candidates__table_id,
+    nocodb__candidates__view_id: process.env.nocodb__candidates__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
     twilio__sendgrid_api_key: process.env.twilio__sendgrid_api_key,
@@ -117,6 +121,15 @@ export const config = {
     const e = getEnv();
     if (!e.nocodb__cms__table_id || !e.nocodb__cms__view_id) return null;
     return { tableId: e.nocodb__cms__table_id, viewId: e.nocodb__cms__view_id };
+  },
+
+  get candidates(): { tableId: string; viewId: string } {
+    const e = getEnv();
+    return requireTableView(
+      e.nocodb__candidates__table_id,
+      e.nocodb__candidates__view_id,
+      "Candidates",
+    );
   },
 
   get presignedLinks(): { tableId: string; viewId: string } {
