@@ -9,6 +9,8 @@ interface RawCandidateRecord {
   State: string;
   Photo: string;
   Description: string;
+  DonateUrl?: string;
+  VolunteerUrl?: string;
 }
 
 export interface CandidateRecord {
@@ -18,6 +20,8 @@ export interface CandidateRecord {
   State: string;
   Photo: string;
   Description: string;
+  DonateUrl: string;
+  VolunteerUrl: string;
 }
 
 export class CandidatesDAO extends BaseViewDAO {
@@ -36,6 +40,8 @@ export class CandidatesDAO extends BaseViewDAO {
         State: r.State ?? "",
         Photo: r.Photo ?? "",
         Description: r.Description ?? "",
+        DonateUrl: r.DonateUrl ?? "",
+        VolunteerUrl: r.VolunteerUrl ?? "",
       }))
       .filter((r) => r.Name !== "");
   }

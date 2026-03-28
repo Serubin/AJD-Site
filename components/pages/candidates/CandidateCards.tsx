@@ -20,10 +20,6 @@ import type { CandidateRecord } from "@/lib/candidates";
 
 const ALL = "__all__";
 
-function candidateSlug(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, "-");
-}
-
 function initials(name: string): string {
   return name
     .split(" ")
@@ -31,6 +27,12 @@ function initials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+function appendRefcode(url: string): string {
+  const u = new URL(url);
+  u.searchParams.set("refcode", "american-jews-for-democracy");
+  return u.toString();
 }
 
 function isSenate(district: string): boolean {
@@ -117,8 +119,6 @@ function CandidateFilters({
 // ---------------------------------------------------------------------------
 
 function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
-  const slug = candidateSlug(candidate.Name);
-
   return (
     <Card className="h-full bg-card/50 border-white/10 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 group">
       <CardContent className="p-5">
@@ -153,26 +153,40 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
         </p>
 
         <div className="flex gap-3">
-          <Link href={`/donate/${slug}`} className="flex-1">
-            <Button
-              variant="default"
-              size="sm"
-              className="w-full bg-primary hover:bg-primary/90 text-background font-semibold"
+          {candidate.DonateUrl && (
+            <Link
+              href={appendRefcode(candidate.DonateUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
             >
-              <Heart className="w-4 h-4" />
-              Donate
-            </Button>
-          </Link>
-          <Link href={`/get-involved/${slug}`} className="flex-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold"
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full bg-primary hover:bg-primary/90 text-background font-semibold"
+              >
+                <Heart className="w-4 h-4" />
+                Donate
+              </Button>
+            </Link>
+          )}
+          {candidate.VolunteerUrl && (
+            <Link
+              href={candidate.VolunteerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
             >
-              <HandHelping className="w-4 h-4" />
-              Get Involved
-            </Button>
-          </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold"
+              >
+                <HandHelping className="w-4 h-4" />
+                Get Involved
+              </Button>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>
