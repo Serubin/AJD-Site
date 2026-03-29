@@ -40,23 +40,10 @@ export default function AboutContent({ sections, teamMembers }: AboutContentProp
                     transition={{ delay: i * 0.1 }}
                     className="flex flex-col items-center text-center group"
                   >
-                    <div className="w-40 h-40 rounded-full bg-white/5 border border-white/10 overflow-hidden mb-4 relative hover-elevate">
-                      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {person.photo ? (
-                        <img
-                          src={person.photo}
-                          alt={person.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-primary/40">
-                          <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
                     <h3 className="text-white font-display font-semibold text-lg">{person.name}</h3>
+                    {person.pronouns && (
+                      <p className="text-muted-foreground text-sm font-sans">{person.pronouns}</p>
+                    )}
                     <p className="text-primary text-sm font-sans uppercase tracking-wider">{person.title}</p>
                   </motion.div>
                 ))}
