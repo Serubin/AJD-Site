@@ -124,7 +124,11 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
       <CardContent className="p-5">
         <div className="flex items-center gap-4 mb-3">
           <Avatar className="h-16 w-16 shrink-0">
-            <AvatarImage src={candidate.Photo} alt={candidate.Name} />
+            <AvatarImage
+              src={candidate.Photo}
+              alt={candidate.Name}
+              className="object-cover object-center"
+            />
             <AvatarFallback className="text-lg font-display">
               {initials(candidate.Name)}
             </AvatarFallback>
