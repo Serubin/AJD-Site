@@ -63,16 +63,23 @@ export default function HomePage({ tagline }: HomePageProps) {
 
           <motion.div
             variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center"
+            className="flex flex-col items-center gap-4 w-full sm:w-auto"
           >
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center justify-center">
+              <Link href="/join-us">
+                <Button size="lg" className="w-full sm:w-auto min-w-[180px] bg-primary hover:bg-primary/90 text-background font-bold tracking-wide shadow-lg shadow-primary/20">
+                  Join Us
+                </Button>
+              </Link>
+              <Link href="/candidates">
+                <Button size="lg" className="w-full sm:w-auto min-w-[180px] bg-primary hover:bg-primary/90 text-background font-bold tracking-wide shadow-lg shadow-primary/20">
+                  Get Involved
+                </Button>
+              </Link>
+            </div>
             <Link href="/about">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto min-w-[160px] border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold tracking-wide">
+              <Button size="lg" variant="outline" className="min-w-[160px] border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold tracking-wide">
                 Our Mission
-              </Button>
-            </Link>
-            <Link href="/join-us" className="hidden sm:block">
-              <Button size="lg" className="w-full sm:w-auto min-w-[160px] bg-primary hover:bg-primary/90 text-background font-bold tracking-wide shadow-lg shadow-primary/20">
-                Join Us
               </Button>
             </Link>
           </motion.div>
