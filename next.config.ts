@@ -13,26 +13,31 @@ const nextConfig: NextConfig = {
   // Turbopack is now the default bundler in Next.js 16
   // No additional configuration needed
 
-  // Redirect all routes to coming-soon page
+  // Redirect nav pages to coming-soon
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-      {
-        source: '/about',
-        destination: '/coming-soon',
-        permanent: false,
-      },
+      // {
+      //   source: '/',
+      //   destination: '/coming-soon',
+      //   permanent: false,
+      // },
+      // {
+      //   source: '/about',
+      //   destination: '/coming-soon',
+      //   permanent: false,
+      // },
       {
         source: '/candidates',
         destination: '/coming-soon',
         permanent: false,
       },
       {
-        source: '/get-involved',
+        source: '/events',
+        destination: '/coming-soon',
+        permanent: false,
+      },
+      {
+        source: '/join-us',
         destination: '/coming-soon',
         permanent: false,
       },
