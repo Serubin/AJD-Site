@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer({ tagline }: { tagline: string }) {
   return (
     <footer className="py-12 border-t border-white/10 bg-black/20 text-center">
@@ -6,7 +8,13 @@ export function Footer({ tagline }: { tagline: string }) {
         <p className="text-muted-foreground text-sm max-w-lg mx-auto mb-8 font-serif leading-relaxed">
           {tagline}
         </p>
-        <div className="flex justify-center gap-6 text-sm text-muted-foreground/60">
+        <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm text-muted-foreground/60">
+          <Link href="/privacy" className="hover:text-muted-foreground transition-colors">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="hover:text-muted-foreground transition-colors">
+            Terms and Conditions
+          </Link>
           <span>&copy; {new Date().getFullYear()} AJD</span>
         </div>
       </div>
