@@ -235,6 +235,11 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
                     />
                   </Button>
 
+                  <p className="text-xs text-white/50 text-center pt-2">
+                    By providing your number you agree to receive limited text
+                    messages (less than once per month). You can always opt out
+                    by replying STOP.
+                  </p>
                 </form>
               </CardContent>
             </Card>
