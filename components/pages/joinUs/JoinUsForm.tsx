@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Loader2, Send, RefreshCw } from "lucide-react";
 
@@ -236,9 +237,23 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
                   </Button>
 
                   <p className="text-xs text-white/50 text-center pt-2">
-                    By providing your number you agree to receive limited text
-                    messages (less than once per month). You can always opt out
-                    by replying STOP.
+                    By providing your phone number, you agree to receive text
+                    messages from American Jews for Democracy (AJD), such as
+                    updates and verification codes. Message frequency varies
+                    (updates are fewer than once per month). Message and data
+                    rates may apply. Reply STOP to opt out, HELP for help. See
+                    our{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-primary hover:underline"
+                    >
+                      Privacy Policy
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/terms" className="text-primary hover:underline">
+                      Terms
+                    </Link>
+                    .
                   </p>
                 </form>
               </CardContent>

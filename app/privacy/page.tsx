@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "How American Jews for Democracy collects, uses, and protects your personal information.",
 };
 
-const LAST_UPDATED = "June 10, 2025";
+const LAST_UPDATED = "June 10, 2026";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -64,12 +64,10 @@ export default function PrivacyPolicyPage() {
           updates. Message and data rates may apply.
         </p>
         <p>
-          You may opt out of marketing text messages at any time by replying
-          STOP to any message from us. After you opt out, we will not send you
-          further marketing text messages, though we may still send
-          non-marketing messages when you request them, such as one-time
-          verification codes or account-related links needed to complete an
-          action you initiated.
+          You may opt out of text messages at any time by replying STOP to any
+          message from us. After you opt out, we will not send you any further
+          text messages, including updates and one-time verification codes,
+          unless you re-subscribe by replying START.
         </p>
         <p>
           You may unsubscribe from marketing emails by using the unsubscribe
@@ -94,6 +92,14 @@ export default function PrivacyPolicyPage() {
           subject to appropriate confidentiality and security obligations. We
           may also disclose information if required by law or to protect the
           rights, safety, and security of AJD, our users, or others.
+        </p>
+        <p>
+          We do not sell or share your personal information with third parties
+          or affiliates for their own marketing or promotional purposes. We do
+          not share your text messaging opt-in or consent data with any third
+          parties or affiliates for any purpose. The phone number you provide
+          and your consent to receive text messages are used solely by AJD to
+          send the messages you have requested.
         </p>
       </LegalSection>
 
