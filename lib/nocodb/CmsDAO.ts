@@ -1,5 +1,6 @@
 import YAML from "yaml";
 import { config } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import { BaseViewDAO } from "./BaseViewDAO";
 import type { ContentType, CMSRecord, CMSSection } from "../cms.types";
 
@@ -69,16 +70,16 @@ export class CmsDAO extends BaseViewDAO {
         try {
           const yamlContent = CmsDAO.extractFromCodeBlock(content);
           return YAML.parse(yamlContent);
-        } catch {
-          console.error("Failed to parse YAML");
+        } catch (err) {
+          logger.error("Failed to parse CMS YAML content", { err });
           return null;
         }
       case "json":
         try {
           const jsonContent = CmsDAO.extractFromCodeBlock(content);
           return JSON.parse(jsonContent);
-        } catch {
-          console.error("Failed to parse JSON");
+        } catch (err) {
+          logger.error("Failed to parse CMS JSON content", { err });
           return null;
         }
       case "markdown":

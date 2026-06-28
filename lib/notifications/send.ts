@@ -1,9 +1,12 @@
 import { config } from "../config";
+import { logger } from "../logger";
 import { smsE164 } from "../phone";
 import { renderTemplate, markdownToHtml, markdownToText } from "../templates";
 import { oncePerSlug, wasDelivered, markDelivered } from "./dedup";
 import { APP_NAME, LINK_EXPIRY_NOTE, loadNotificationTemplates } from "./templates";
 import { sendEmail, sendSms } from "./transports";
+
+const log = logger.child({ component: "notifications" });
 
 function trimEmail(value: string | undefined): string | undefined {
   const t = value?.trim();
@@ -46,10 +49,6 @@ function resolveSmsBody(opts: SendOptions): string {
   return `${APP_NAME}: Hi ${opts.name}, confirm signup: ${opts.confirmUrl}`;
 }
 
-function resolveLogPrefix(opts: SendOptions): string {
-  return opts.kind === "update" ? "[Presigned Link]" : "[Signup Confirm]";
-}
-
 function resolveUrl(opts: SendOptions): string {
   return opts.kind === "update" ? opts.updateUrl : opts.confirmUrl;
 }
@@ -60,7 +59,6 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
   const templates = await loadNotificationTemplates();
   const email = trimEmail(opts.toEmail);
   const phone = smsE164(opts.toPhone);
-  const idNote = opts.userId !== undefined ? `user ${opts.userId}` : "user";
 
   const subjectKey = opts.kind === "update" ? "updateSubject" : "signupSubject";
   const bodyKey = opts.kind === "update" ? "updateBodyMarkdown" : "signupBodyMarkdown";
@@ -77,7 +75,7 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
       markDelivered(opts.linkSlug);
       return;
     } catch (err) {
-      console.error(`[notifications] SendGrid ${opts.kind} failed:`, err);
+      log.error("SendGrid send failed", { err, kind: opts.kind });
     }
   }
 
@@ -87,13 +85,15 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
       markDelivered(opts.linkSlug);
       return;
     } catch (err) {
-      console.error(`[notifications] Twilio ${opts.kind} failed:`, err);
+      log.error("Twilio SMS send failed", { err, kind: opts.kind });
     }
   }
 
-  console.log(
-    `${resolveLogPrefix(opts)} Link for ${idNote} (no email/SMS sent): ${resolveUrl(opts)}`,
-  );
+  log.info("link not delivered (no email/SMS transport configured)", {
+    kind: opts.kind,
+    userId: opts.userId,
+    url: resolveUrl(opts),
+  });
 }
 
 /**
