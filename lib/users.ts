@@ -39,6 +39,34 @@ export async function updateUserVerified(
   return dao.updateUserVerified(id, verified);
 }
 
+export async function listAllUsers(): Promise<UserRecord[]> {
+  const dao = getUsersDAO();
+  return dao.listAllUsers();
+}
+
+export async function findUserByPhone(
+  phone: string
+): Promise<UserRecord | null> {
+  const dao = getUsersDAO();
+  return dao.findByPhone(phone);
+}
+
+export async function setEmailOptedOut(
+  id: number,
+  optedOut: boolean
+): Promise<UserRecord> {
+  const dao = getUsersDAO();
+  return dao.setEmailOptedOut(id, optedOut);
+}
+
+export async function setSmsOptedOut(
+  id: number,
+  optedOut: boolean
+): Promise<UserRecord> {
+  const dao = getUsersDAO();
+  return dao.setSmsOptedOut(id, optedOut);
+}
+
 export async function checkEmailPhoneUniqueness(
   email: string,
   phone: string,

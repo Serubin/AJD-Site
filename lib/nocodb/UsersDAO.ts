@@ -10,6 +10,12 @@ export interface UserRecord {
   CongressionalDistrict: string;
   /** When undefined/null, treat as verified (backwards compatibility). */
   Verified?: boolean;
+  /** Set when the user unsubscribes from marketing email. */
+  EmailOptedOut?: boolean;
+  /** Set when the user replies STOP to marketing SMS. */
+  SmsOptedOut?: boolean;
+  EmailOptedOutAt?: string | null;
+  SmsOptedOutAt?: string | null;
 }
 
 export interface CreateUserInput {
@@ -112,5 +118,46 @@ export class UsersDAO extends BaseViewDAO {
    */
   async updateUserVerified(id: number, verified: boolean): Promise<UserRecord> {
     return this.updateRecord<UserRecord>(id, { Verified: verified });
+  }
+
+  /**
+   * Set the marketing email opt-out flag (CAN-SPAM unsubscribe).
+   */
+  async setEmailOptedOut(id: number, optedOut: boolean): Promise<UserRecord> {
+    return this.updateRecord<UserRecord>(id, {
+      EmailOptedOut: optedOut,
+      EmailOptedOutAt: optedOut ? new Date().toISOString() : null,
+    });
+  }
+
+  /**
+   * Set the marketing SMS opt-out flag (TCPA STOP keyword).
+   */
+  async setSmsOptedOut(id: number, optedOut: boolean): Promise<UserRecord> {
+    return this.updateRecord<UserRecord>(id, {
+      SmsOptedOut: optedOut,
+      SmsOptedOutAt: optedOut ? new Date().toISOString() : null,
+    });
+  }
+
+  /**
+   * Stream every user record, paging past the per-request limit.
+   * Used to enumerate campaign recipients regardless of audience size.
+   */
+  async listAllUsers(pageSize = 200): Promise<UserRecord[]> {
+    const all: UserRecord[] = [];
+    let offset = 0;
+
+    for (;;) {
+      const result = await this.listRecords<UserRecord>({
+        limit: pageSize,
+        offset,
+      });
+      all.push(...result.list);
+      if (result.pageInfo?.isLastPage || result.list.length === 0) break;
+      offset += result.list.length;
+    }
+
+    return all;
   }
 }

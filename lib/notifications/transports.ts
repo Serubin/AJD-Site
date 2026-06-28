@@ -7,6 +7,7 @@ export async function sendEmail(
   subject: string,
   text: string,
   html?: string,
+  headers?: Record<string, string>,
 ): Promise<void> {
   const sg = config.sendgrid;
   if (!sg) return;
@@ -17,6 +18,7 @@ export async function sendEmail(
     subject,
     text,
     ...(html ? { html } : {}),
+    ...(headers ? { headers } : {}),
   });
 }
 
