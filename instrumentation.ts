@@ -6,8 +6,14 @@ import type { Instrumentation } from "next";
  * file exists to capture server-side request errors as structured log lines so
  * they end up in Loki instead of Next's default unstructured stderr output.
  */
-export function register() {
-  // No-op. Reserved for future telemetry setup.
+export async function register() {
+  // Filter the transitive DEP0169 (`url.parse()`) deprecation warning. The
+  // patch touches Node-only `process.emitWarning`, so it lives in its own module
+  // loaded via a dynamic import guarded to the Node.js runtime — this keeps the
+  // Node API out of the Edge bundle (the same lazy-import approach used by
+  // onRequestError below). See lib/silenceUrlParseDeprecation.ts for details.
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  await import("./lib/silenceUrlParseDeprecation");
 }
 
 export const onRequestError: Instrumentation.onRequestError = async (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import { sendUpdateLink } from "@/lib/notifications";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
 import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
@@ -9,6 +10,8 @@ import {
   buildConflictResponse,
   handleApiError,
 } from "@/lib/api";
+
+const log = logger.child({ component: "presigned-links" });
 
 export async function POST(request: NextRequest) {
   const bodyOrError = await parseJsonBody(request);
@@ -30,6 +33,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!user || !user.Id) {
+      log.warn("update link requested for unknown user");
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 },
@@ -39,6 +43,12 @@ export async function POST(request: NextRequest) {
     const { link, isNew } = await createPresignedLink(user.Id);
     const baseUrl = config.app.baseUrl;
     const updateUrl = `${baseUrl}/join-us/${link.Slug}`;
+    log.info("update link requested", {
+      userId: user.Id,
+      slug: link.Slug,
+      isNew,
+      sent: isNew,
+    });
     if (isNew) {
       await sendUpdateLink({
         linkSlug: link.Slug,
@@ -79,6 +89,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const link = await findValidLink(slug);
     if (!link || !link.Id) {
+      log.warn("update attempted with invalid/expired slug", { slug });
       return NextResponse.json(
         { error: "Invalid or expired link" },
         { status: 404 },
@@ -103,6 +114,11 @@ export async function PATCH(request: NextRequest) {
     });
 
     await expireLink(link.Id);
+    log.info("user updated via slug", {
+      userId: link.User.Id,
+      linkId: link.Id,
+      slug,
+    });
 
     return NextResponse.json({ success: true, user });
   } catch (error) {
