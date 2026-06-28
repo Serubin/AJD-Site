@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Terms and conditions governing your use of the American Jews for Democracy website and communications.",
 };
 
-const LAST_UPDATED = "June 10, 2025";
+const LAST_UPDATED = "June 10, 2026";
 
 export default function TermsPage() {
   return (
@@ -55,32 +55,22 @@ export default function TermsPage() {
         </p>
         <p>
           <strong className="text-white/90 font-sans font-medium">
-            Marketing messages.
+            Text messages.
           </strong>{" "}
-          If you provide a phone number, you agree to receive limited marketing
-          text messages from us, typically fewer than one per month, about AJD
-          news, events, and opportunities. Message and data rates may apply. You
-          may opt out of marketing text messages at any time by replying STOP to
-          any message from us. After we process your opt-out request, we will not
-          send you further marketing text messages.
+          If you provide a phone number, you agree to receive text messages from
+          us, such as updates about AJD news, events, and opportunities
+          (typically fewer than one per month) and one-time verification codes or
+          account update links that you request. Message frequency varies.
+          Message and data rates may apply. You may opt out at any time by
+          replying STOP to any message from us. After we process your opt-out
+          request, we will not send you any further text messages, including
+          updates and one-time codes, unless you re-subscribe by replying START.
+          For help, reply HELP.
         </p>
         <p>
           You may also opt out of marketing emails by using the unsubscribe
-          link included in our emails. Opting out of marketing communications
-          does not affect your ability to use our website or remain signed up
-          with AJD.
-        </p>
-        <p>
-          <strong className="text-white/90 font-sans font-medium">
-            One-time and transactional messages.
-          </strong>{" "}
-          Even if you have opted out of marketing messages, we may still send
-          one-time codes, verification links, account update links, or other
-          non-marketing messages when you request them or when they are
-          reasonably necessary to complete an action you initiated—for example,
-          confirming your email address, accessing a secure update link, or
-          verifying your identity for a specific request. These messages are not
-          marketing communications and are not affected by a marketing opt-out.
+          link included in our emails. Opting out of communications does not
+          affect your ability to use our website or remain signed up with AJD.
         </p>
         <p>
           For information about how we handle personal data, please see our{" "}
