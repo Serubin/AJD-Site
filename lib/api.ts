@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { logger } from "./logger";
 
 export async function parseJsonBody(
   request: NextRequest,
@@ -38,6 +39,6 @@ export function buildConflictResponse(
 }
 
 export function handleApiError(error: unknown, message: string): NextResponse {
-  console.error(`${message}:`, error);
+  logger.error(message, { err: error });
   return NextResponse.json({ error: message }, { status: 500 });
 }

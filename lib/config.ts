@@ -9,6 +9,8 @@ import { z } from "zod";
 const envSchema = z.object({
   app__base_url: z.string().url().optional(),
   app__node_env: z.enum(["development", "production", "test"]).optional(),
+  app__log_level: z.enum(["debug", "info", "warn", "error"]).optional(),
+  app__service_name: z.string().optional(),
   nocodb__base_url: z.string().optional(),
   nocodb__api_token: z.string().optional(),
   nocodb__users__table_id: z.string().optional(),
@@ -37,6 +39,8 @@ function getEnv(): Env {
   cachedEnv = envSchema.parse({
     app__base_url: process.env.app__base_url,
     app__node_env: process.env.app__node_env,
+    app__log_level: process.env.app__log_level,
+    app__service_name: process.env.app__service_name,
     nocodb__base_url: process.env.nocodb__base_url,
     nocodb__api_token: process.env.nocodb__api_token,
     nocodb__users__table_id: process.env.nocodb__users__table_id,
@@ -91,6 +95,9 @@ export const config = {
       baseUrl: e.app__base_url ?? "http://localhost:3000",
       nodeEnv,
       isProduction: nodeEnv === "production",
+      logLevel:
+        e.app__log_level ?? (nodeEnv === "production" ? "info" : "debug"),
+      serviceName: e.app__service_name ?? "ajd-site",
     };
   },
 
