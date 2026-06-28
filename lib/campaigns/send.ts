@@ -64,7 +64,7 @@ async function deliverOne(
   }
 
   try {
-    if (recipient.channel === "email" && recipient.email && config.sendgrid) {
+    if (recipient.channel === "email" && recipient.email && config.twilioEmail) {
       const email = composeEmail(campaign, userId, templates);
       await sendEmail(
         recipient.email,
@@ -72,6 +72,7 @@ async function deliverOne(
         email.text,
         email.html,
         email.headers,
+        { userId, kind: "campaign", campaignId: campaign.Id },
       );
       tally.emailsSent += 1;
       await sendsDAO.recordSend({
@@ -85,7 +86,11 @@ async function deliverOne(
 
     if (recipient.channel === "sms" && recipient.phone && config.twilioSms) {
       const body = composeSms(campaign, templates);
-      await sendSms(recipient.phone, body);
+      await sendSms(recipient.phone, body, {
+        userId,
+        kind: "campaign",
+        campaignId: campaign.Id,
+      });
       tally.smsSent += 1;
       await sendsDAO.recordSend({
         campaignId: campaign.Id!,

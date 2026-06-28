@@ -1,3 +1,4 @@
+import { logger } from "./logger";
 import {
   PresignedLinksDAO,
   type PresignedLinkRecord,
@@ -8,6 +9,8 @@ import { lazyInit } from "./utils";
 export type { PresignedLinkRecord };
 
 const LINK_EXPIRY_HOURS = 24;
+
+const log = logger.child({ component: "presigned-links" });
 
 const getDAO = lazyInit(() => new PresignedLinksDAO());
 
@@ -27,12 +30,25 @@ export async function createPresignedLink(
 ): Promise<CreatePresignedLinkResult> {
   return runExclusive(`presigned-link:${userId}`, async () => {
     const existing = await getDAO().findValidByUserId(userId);
-    if (existing) return { link: existing, isNew: false };
+    if (existing) {
+      log.debug("presigned link reused", {
+        userId,
+        linkId: existing.Id,
+        slug: existing.Slug,
+      });
+      return { link: existing, isNew: false };
+    }
 
     const expiresAt = new Date(
       Date.now() + LINK_EXPIRY_HOURS * 60 * 60 * 1000
     );
     const link = await getDAO().createLink(userId, expiresAt);
+    log.info("presigned link created", {
+      userId,
+      linkId: link.Id,
+      slug: link.Slug,
+      expiresAt: expiresAt.toISOString(),
+    });
     return { link, isNew: true };
   });
 }
@@ -50,5 +66,6 @@ export async function findValidLink(
  * Mark a presigned link as used so it cannot be reused.
  */
 export async function expireLink(id: number): Promise<void> {
-  return getDAO().markUsed(id);
+  await getDAO().markUsed(id);
+  log.info("presigned link consumed", { linkId: id });
 }
