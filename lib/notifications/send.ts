@@ -54,11 +54,28 @@ function resolveUrl(opts: SendOptions): string {
 }
 
 async function sendNotificationBody(opts: SendOptions): Promise<void> {
-  if (wasDelivered(opts.linkSlug)) return;
+  if (wasDelivered(opts.linkSlug)) {
+    log.debug("notification skipped: already delivered on this instance", {
+      kind: opts.kind,
+      userId: opts.userId,
+      slug: opts.linkSlug,
+    });
+    return;
+  }
 
   const templates = await loadNotificationTemplates();
   const email = trimEmail(opts.toEmail);
   const phone = smsE164(opts.toPhone);
+
+  log.debug("notification dispatch", {
+    kind: opts.kind,
+    userId: opts.userId,
+    slug: opts.linkSlug,
+    hasEmail: !!email,
+    hasPhone: !!phone,
+    emailConfigured: !!config.twilioEmail,
+    smsConfigured: !!config.twilioSms,
+  });
 
   const subjectKey = opts.kind === "update" ? "updateSubject" : "signupSubject";
   const bodyKey = opts.kind === "update" ? "updateBodyMarkdown" : "signupBodyMarkdown";
@@ -69,19 +86,27 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
   const htmlBody = markdownToHtml(renderedMarkdown);
   const subject = renderTemplate(templates[subjectKey], vars);
 
-  if (email && config.sendgrid) {
+  if (email && config.twilioEmail) {
     try {
-      await sendEmail(email, subject, textBody, htmlBody);
+      await sendEmail(email, subject, textBody, htmlBody, undefined, {
+        userId: opts.userId,
+        kind: opts.kind,
+        slug: opts.linkSlug,
+      });
       markDelivered(opts.linkSlug);
       return;
     } catch (err) {
-      log.error("SendGrid send failed", { err, kind: opts.kind });
+      log.error("Twilio email send failed", { err, kind: opts.kind });
     }
   }
 
   if (!email && phone && config.twilioSms) {
     try {
-      await sendSms(phone, resolveSmsBody(opts));
+      await sendSms(phone, resolveSmsBody(opts), {
+        userId: opts.userId,
+        kind: opts.kind,
+        slug: opts.linkSlug,
+      });
       markDelivered(opts.linkSlug);
       return;
     } catch (err) {
@@ -89,9 +114,27 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
     }
   }
 
-  log.info("link not delivered (no email/SMS transport configured)", {
+  // Reaching here means no channel delivered. Surface the specific reason so a
+  // silent non-send is debuggable from the logs alone.
+  let reason: string;
+  if (!email && !phone) {
+    reason = "no valid email or phone on record";
+  } else if (email && !config.twilioEmail) {
+    reason = "email present but email transport not configured (SMS is skipped when an email exists)";
+  } else if (email && config.twilioEmail) {
+    reason = "email transport configured but send threw (see prior error)";
+  } else {
+    reason = "phone present but SMS transport not configured";
+  }
+
+  log.warn("link not delivered", {
     kind: opts.kind,
     userId: opts.userId,
+    reason,
+    hasEmail: !!email,
+    hasPhone: !!phone,
+    emailConfigured: !!config.twilioEmail,
+    smsConfigured: !!config.twilioSms,
     url: resolveUrl(opts),
   });
 }

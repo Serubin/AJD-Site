@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import { sendSignupConfirmation } from "@/lib/notifications";
 import { createPresignedLink } from "@/lib/presignedLinks";
 import { runExclusive } from "@/lib/runExclusive";
@@ -10,6 +11,8 @@ import {
   buildConflictResponse,
   handleApiError,
 } from "@/lib/api";
+
+const log = logger.child({ component: "signup" });
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
     return await runExclusive(signupKey, async () => {
       const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(email, phone);
       if (emailTaken || phoneTaken) {
+        log.info("signup rejected: duplicate", { emailTaken, phoneTaken });
         return buildConflictResponse(emailTaken, phoneTaken);
       }
 
@@ -62,11 +66,18 @@ export async function POST(request: NextRequest) {
         states,
         congressionalDistrict,
       });
+      log.info("user created", { userId: user.Id });
 
       if (user.Id) {
         const { link, isNew } = await createPresignedLink(user.Id);
         const baseUrl = config.app.baseUrl;
         const confirmUrl = `${baseUrl}/join-us/confirm/${link.Slug}`;
+        log.info("signup confirmation", {
+          userId: user.Id,
+          slug: link.Slug,
+          isNew,
+          sent: isNew,
+        });
         if (isNew) {
           await sendSignupConfirmation({
             linkSlug: link.Slug,

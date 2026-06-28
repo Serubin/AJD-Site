@@ -27,8 +27,8 @@ const envSchema = z.object({
   nocodb__campaign_sends__view_id: z.string().optional(),
   features__whatsapp_link: z.string().optional(),
   features__geocodio_api_key: z.string().optional(),
-  twilio__sendgrid_api_key: z.string().optional(),
   twilio__from_email: z.string().optional(),
+  twilio__from_name: z.string().optional(),
   twilio__account_sid: z.string().optional(),
   twilio__auth_token: z.string().optional(),
   twilio__messaging_phone_number: z.string().optional(),
@@ -68,8 +68,8 @@ function getEnv(): Env {
       process.env.nocodb__campaign_sends__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
-    twilio__sendgrid_api_key: process.env.twilio__sendgrid_api_key,
     twilio__from_email: process.env.twilio__from_email,
+    twilio__from_name: process.env.twilio__from_name,
     twilio__account_sid: process.env.twilio__account_sid,
     twilio__auth_token: process.env.twilio__auth_token,
     twilio__messaging_phone_number:
@@ -195,15 +195,23 @@ export const config = {
   },
 
   /**
-   * Twilio SendGrid (email). All fields required to send; otherwise null (no-op in dev).
-   * Env: twilio__sendgrid_api_key, twilio__from_email (verified sender in SendGrid).
+   * Twilio Email API. All fields required to send; otherwise null (no-op in dev).
+   * Env: twilio__account_sid, twilio__auth_token, twilio__from_email, twilio__from_name (optional).
    */
-  get sendgrid(): { apiKey: string; fromEmail: string } | null {
+  get twilioEmail(): {
+    accountSid: string;
+    authToken: string;
+    fromEmail: string;
+    fromName: string;
+  } | null {
     const e = getEnv();
-    const apiKey = e.twilio__sendgrid_api_key?.trim();
+    const accountSid = e.twilio__account_sid?.trim();
+    const authToken = e.twilio__auth_token?.trim();
     const fromEmail = e.twilio__from_email?.trim();
-    if (!apiKey || !fromEmail) return null;
-    return { apiKey, fromEmail };
+    if (!accountSid || !authToken || !fromEmail) return null;
+    const fromName =
+      e.twilio__from_name?.trim() || "American Jews for Democracy";
+    return { accountSid, authToken, fromEmail, fromName };
   },
 
   /**
