@@ -19,6 +19,10 @@ const envSchema = z.object({
   nocodb__presigned_links__view_id: z.string().optional(),
   nocodb__candidates__table_id: z.string().optional(),
   nocodb__candidates__view_id: z.string().optional(),
+  nocodb__campaigns__table_id: z.string().optional(),
+  nocodb__campaigns__view_id: z.string().optional(),
+  nocodb__campaign_sends__table_id: z.string().optional(),
+  nocodb__campaign_sends__view_id: z.string().optional(),
   features__whatsapp_link: z.string().optional(),
   features__geocodio_api_key: z.string().optional(),
   twilio__sendgrid_api_key: z.string().optional(),
@@ -26,6 +30,9 @@ const envSchema = z.object({
   twilio__account_sid: z.string().optional(),
   twilio__auth_token: z.string().optional(),
   twilio__messaging_phone_number: z.string().optional(),
+  campaigns__webhook_secret: z.string().optional(),
+  unsubscribe__secret: z.string().optional(),
+  org__postal_address: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -49,6 +56,12 @@ function getEnv(): Env {
       process.env.nocodb__presigned_links__view_id,
     nocodb__candidates__table_id: process.env.nocodb__candidates__table_id,
     nocodb__candidates__view_id: process.env.nocodb__candidates__view_id,
+    nocodb__campaigns__table_id: process.env.nocodb__campaigns__table_id,
+    nocodb__campaigns__view_id: process.env.nocodb__campaigns__view_id,
+    nocodb__campaign_sends__table_id:
+      process.env.nocodb__campaign_sends__table_id,
+    nocodb__campaign_sends__view_id:
+      process.env.nocodb__campaign_sends__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
     twilio__sendgrid_api_key: process.env.twilio__sendgrid_api_key,
@@ -57,6 +70,9 @@ function getEnv(): Env {
     twilio__auth_token: process.env.twilio__auth_token,
     twilio__messaging_phone_number:
       process.env.twilio__messaging_phone_number,
+    campaigns__webhook_secret: process.env.campaigns__webhook_secret,
+    unsubscribe__secret: process.env.unsubscribe__secret,
+    org__postal_address: process.env.org__postal_address,
   });
   return cachedEnv;
 }
@@ -141,6 +157,24 @@ export const config = {
     );
   },
 
+  get campaigns(): { tableId: string; viewId: string } {
+    const e = getEnv();
+    return requireTableView(
+      e.nocodb__campaigns__table_id,
+      e.nocodb__campaigns__view_id,
+      "Campaigns",
+    );
+  },
+
+  get campaignSends(): { tableId: string; viewId: string } {
+    const e = getEnv();
+    return requireTableView(
+      e.nocodb__campaign_sends__table_id,
+      e.nocodb__campaign_sends__view_id,
+      "CampaignSends",
+    );
+  },
+
   /**
    * Optional feature flags / URLs. Env: features__whatsapp_link, features__geocodio_api_key.
    */
@@ -180,5 +214,37 @@ export const config = {
     const messagingPhoneNumber = e.twilio__messaging_phone_number?.trim();
     if (!accountSid || !authToken || !messagingPhoneNumber) return null;
     return { accountSid, authToken, messagingPhoneNumber };
+  },
+
+  /**
+   * Campaign sending. The webhook secret authenticates NocoDB -> /api/campaigns/send.
+   * The unsubscribe secret signs stateless opt-out tokens. Both required to send.
+   * Org postal address is optional (only relevant for commercial mail).
+   */
+  get campaignSending(): {
+    webhookSecret: string;
+    unsubscribeSecret: string;
+    orgPostalAddress: string;
+  } {
+    const e = getEnv();
+    const webhookSecret = e.campaigns__webhook_secret?.trim();
+    const unsubscribeSecret = e.unsubscribe__secret?.trim();
+    const orgPostalAddress = e.org__postal_address?.trim() ?? "";
+    if (!webhookSecret || !unsubscribeSecret) {
+      throw new Error(
+        "Missing campaign configuration: campaigns__webhook_secret and unsubscribe__secret must be set",
+      );
+    }
+    return { webhookSecret, unsubscribeSecret, orgPostalAddress };
+  },
+
+  /** Unsubscribe signing key alone (used by token verify on the public unsubscribe path). */
+  get unsubscribeSecret(): string {
+    const e = getEnv();
+    const secret = e.unsubscribe__secret?.trim();
+    if (!secret) {
+      throw new Error("Missing unsubscribe__secret configuration");
+    }
+    return secret;
   },
 };
