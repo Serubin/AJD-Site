@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, MapPin, Video } from "lucide-react";
-import { appendRefcode } from "@/lib/utils";
+import { withTracking } from "@/lib/utils";
 import { humanizeEventType } from "@/lib/eventTypes";
 import type { EventRecord, EventTimeslot } from "@/lib/events";
 
@@ -40,9 +40,7 @@ function EventCardImpl({ event, displayedTimeslot, matchingSlotCount }: Props) {
   const showImage = event.featuredImageUrl && !imgError;
   const startIso = new Date(displayedTimeslot.startMs).toISOString();
   const startLabel = formatTimeslot(displayedTimeslot.startMs, event.timezone);
-  const ctaUrl = event.browserUrl
-    ? appendRefcode(event.browserUrl, "aj4d-events")
-    : "";
+  const ctaUrl = event.browserUrl ? withTracking(event.browserUrl) : "";
 
   return (
     <Card className="h-full bg-card/50 border-white/10 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 group flex flex-col overflow-hidden">
