@@ -26,16 +26,16 @@ const nextConfig: NextConfig = {
       //   destination: '/coming-soon',
       //   permanent: false,
       // },
-      {
-        source: '/candidates',
-        destination: '/coming-soon',
-        permanent: false,
-      },
-      {
-        source: '/events',
-        destination: '/coming-soon',
-        permanent: false,
-      },
+      // {
+      //   source: '/candidates',
+      //   destination: '/coming-soon',
+      //   permanent: false,
+      // },
+      // {
+      //   source: '/events',
+      //   destination: '/coming-soon',
+      //   permanent: false,
+      // },
       // {
       //   source: '/join-us',
       //   destination: '/coming-soon',
