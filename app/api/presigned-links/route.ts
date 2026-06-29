@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         toPhone: user.Phone || undefined,
         updateUrl,
         userId: user.Id,
+        smsOptedOut: user.SmsOptedOut,
       });
     }
 

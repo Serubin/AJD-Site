@@ -19,6 +19,8 @@ interface NotificationOptions {
   toEmail?: string;
   toPhone?: string;
   userId?: number;
+  /** When true, suppress the SMS fallback: the user has opted out of SMS. */
+  smsOptedOut?: boolean;
 }
 
 interface UpdateOptions extends NotificationOptions {
@@ -101,6 +103,13 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
   }
 
   if (!email && phone && config.twilioSms) {
+    if (opts.smsOptedOut) {
+      log.info("transactional SMS suppressed: user opted out of SMS", {
+        kind: opts.kind,
+        userId: opts.userId,
+      });
+      return;
+    }
     try {
       await sendSms(phone, resolveSmsBody(opts), {
         userId: opts.userId,
@@ -149,6 +158,7 @@ export async function sendUpdateLink(options: {
   toPhone?: string;
   updateUrl: string;
   userId?: number;
+  smsOptedOut?: boolean;
 }): Promise<void> {
   return oncePerSlug(options.linkSlug, () =>
     sendNotificationBody({ kind: "update", ...options }),
@@ -165,6 +175,7 @@ export async function sendSignupConfirmation(options: {
   name: string;
   confirmUrl: string;
   userId?: number;
+  smsOptedOut?: boolean;
 }): Promise<void> {
   return oncePerSlug(options.linkSlug, () =>
     sendNotificationBody({ kind: "signup", ...options }),
