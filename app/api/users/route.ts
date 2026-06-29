@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
             name,
             confirmUrl,
             userId: user.Id,
+            smsOptedOut: user.SmsOptedOut,
           });
         }
       }
