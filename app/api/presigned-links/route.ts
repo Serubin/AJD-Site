@@ -3,7 +3,13 @@ import { config } from "@/lib/config";
 import { logger } from "@/lib/logger";
 import { sendUpdateLink, type DeliveryResult } from "@/lib/notifications";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
-import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
+import {
+  findUser,
+  updateUser,
+  checkEmailPhoneUniqueness,
+  setSmsOptedOut,
+  setEmailOptedOut,
+} from "@/lib/users";
 import {
   parseJsonBody,
   joinUsPayloadSchema,
@@ -40,6 +46,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Submitting the form (which carries the consent disclaimer) re-opts the
+    // user into the channel(s) they provided. Only write when currently opted
+    // out to avoid redundant writes from the debounced lookup. NB: this is a
+    // local re-opt-in; a user who texted STOP must text START before Twilio
+    // will deliver again.
+    let smsOptedOut = user.SmsOptedOut;
+    if (typeof phone === "string" && phone.trim() && user.SmsOptedOut) {
+      await setSmsOptedOut(user.Id, false);
+      smsOptedOut = false;
+      log.info("sms re-opt-in via form", { userId: user.Id });
+    }
+    if (typeof email === "string" && email.trim() && user.EmailOptedOut) {
+      await setEmailOptedOut(user.Id, false);
+      log.info("email re-opt-in via form", { userId: user.Id });
+    }
+
     const { link, isNew } = await createPresignedLink(user.Id);
     const baseUrl = config.app.baseUrl;
     const updateUrl = `${baseUrl}/join-us/${link.Slug}`;
@@ -58,7 +80,7 @@ export async function POST(request: NextRequest) {
         toPhone: user.Phone || undefined,
         updateUrl,
         userId: user.Id,
-        smsOptedOut: user.SmsOptedOut,
+        smsOptedOut,
       });
     }
 
@@ -124,6 +146,23 @@ export async function PATCH(request: NextRequest) {
       phone,
       states,
       congressionalDistrict,
+    });
+
+    // Submitting the update form re-opts the user into the channel(s) they
+    // provided (the form carries the consent disclaimer). A single deliberate
+    // submit, so we clear unconditionally rather than depend on the update
+    // response carrying the prior opt-out flags. NB: local re-opt-in only — a
+    // user who texted STOP must text START before Twilio will deliver again.
+    if (phone && phone.trim()) {
+      await setSmsOptedOut(link.User.Id, false);
+    }
+    if (email && email.trim()) {
+      await setEmailOptedOut(link.User.Id, false);
+    }
+    log.info("re-opt-in via update form", {
+      userId: link.User.Id,
+      sms: !!(phone && phone.trim()),
+      email: !!(email && email.trim()),
     });
 
     await expireLink(link.Id);
