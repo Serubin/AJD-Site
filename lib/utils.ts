@@ -13,3 +13,13 @@ export function lazyInit<T>(factory: () => T): () => T {
     return instance;
   };
 }
+
+/** Append a `refcode` query param to a URL, overwriting any existing value. */
+export function appendRefcode(
+  url: string,
+  code: string = "american-jews-for-democracy",
+): string {
+  const u = new URL(url);
+  u.searchParams.set("refcode", code);
+  return u.toString();
+}
