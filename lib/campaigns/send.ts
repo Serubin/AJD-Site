@@ -64,12 +64,7 @@ async function deliverOne(
   }
 
   try {
-    if (
-      recipient.channel === "email" &&
-      recipient.email &&
-      config.emailEnabled &&
-      config.twilioEmail
-    ) {
+    if (recipient.channel === "email" && recipient.email && config.twilioEmail) {
       const email = composeEmail(campaign, userId, templates);
       await sendEmail(
         recipient.email,
@@ -89,12 +84,7 @@ async function deliverOne(
       return;
     }
 
-    if (
-      recipient.channel === "sms" &&
-      recipient.phone &&
-      config.smsEnabled &&
-      config.twilioSms
-    ) {
+    if (recipient.channel === "sms" && recipient.phone && config.twilioSms) {
       const body = composeSms(campaign, templates);
       await sendSms(recipient.phone, body, {
         userId,

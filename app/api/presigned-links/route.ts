@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
 import { logger } from "@/lib/logger";
-import { sendUpdateLink, type DeliveryResult } from "@/lib/notifications";
+import { sendUpdateLink } from "@/lib/notifications";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
 import { findUser, updateUser, checkEmailPhoneUniqueness } from "@/lib/users";
 import {
@@ -49,10 +49,8 @@ export async function POST(request: NextRequest) {
       isNew,
       sent: isNew,
     });
-    // A pre-existing valid link was already delivered when it was created.
-    let delivery: DeliveryResult = { delivered: true, channel: null };
     if (isNew) {
-      delivery = await sendUpdateLink({
+      await sendUpdateLink({
         linkSlug: link.Slug,
         toEmail: user.Email || undefined,
         toPhone: user.Phone || undefined,
@@ -62,17 +60,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (!delivery.delivered) {
-      return NextResponse.json(
-        {
-          error: "We couldn't deliver an update link to you right now.",
-          delivered: false,
-        },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json({ success: true, channel: delivery.channel });
+    return NextResponse.json({ success: true });
   } catch (error) {
     return handleApiError(error, "Failed to create presigned link");
   }

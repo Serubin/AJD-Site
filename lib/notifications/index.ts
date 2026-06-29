@@ -1,5 +1,1 @@
-export {
-  sendUpdateLink,
-  sendSignupConfirmation,
-  type DeliveryResult,
-} from "./send";
+export { sendUpdateLink, sendSignupConfirmation } from "./send";

@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
           sent: isNew,
         });
         if (isNew) {
-          const delivery = await sendSignupConfirmation({
+          await sendSignupConfirmation({
             linkSlug: link.Slug,
             toEmail: email,
             toPhone: phone || undefined,
@@ -88,19 +88,6 @@ export async function POST(request: NextRequest) {
             userId: user.Id,
             smsOptedOut: user.SmsOptedOut,
           });
-          // The record was created, but we couldn't deliver the confirmation
-          // link (e.g. its channel is disabled): surface failure so the UI does
-          // not falsely tell the user to check their inbox.
-          if (!delivery.delivered) {
-            return NextResponse.json(
-              {
-                error:
-                  "We couldn't send your confirmation link right now. Please try again later.",
-                delivered: false,
-              },
-              { status: 502 },
-            );
-          }
         }
       }
 
