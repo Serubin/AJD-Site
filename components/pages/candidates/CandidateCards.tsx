@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { FILTER_ALL as ALL, useFilterSync } from "@/lib/filterParams";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,8 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Heart, HandHelping, Search, RotateCcw } from "lucide-react";
 import type { CandidateRecord } from "@/lib/candidates";
-
-const ALL = "__all__";
+import { appendRefcode } from "@/lib/utils";
 
 function initials(name: string): string {
   return name
@@ -27,12 +28,6 @@ function initials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
-}
-
-function appendRefcode(url: string): string {
-  const u = new URL(url);
-  u.searchParams.set("refcode", "american-jews-for-democracy");
-  return u.toString();
 }
 
 function isSenate(district: string): boolean {
@@ -174,23 +169,19 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
               </Button>
             </Link>
           )}
-          {candidate.VolunteerUrl && (
-            <Link
-              href={candidate.VolunteerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1"
+          <Link
+            href={`/events?candidate=${candidate.Id}`}
+            className="flex-1"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-semibold"
-              >
-                <HandHelping className="w-4 h-4" />
-                Get Involved
-              </Button>
-            </Link>
-          )}
+              <HandHelping className="w-4 h-4" />
+              Get Involved
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
@@ -202,9 +193,25 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
 // ---------------------------------------------------------------------------
 
 export function CandidateCards({ candidates }: { candidates: CandidateRecord[] }) {
-  const [nameQuery, setNameQuery] = useState("");
-  const [stateFilter, setStateFilter] = useState(ALL);
-  const [chamberFilter, setChamberFilter] = useState(ALL);
+  const searchParams = useSearchParams();
+
+  const [nameQuery, setNameQuery] = useState(
+    () => searchParams.get("q") ?? "",
+  );
+  const [stateFilter, setStateFilter] = useState(() => {
+    const s = searchParams.get("state");
+    return s && candidates.some((c) => c.State === s) ? s : ALL;
+  });
+  const [chamberFilter, setChamberFilter] = useState(() => {
+    const c = searchParams.get("chamber");
+    return c === "senate" || c === "house" ? c : ALL;
+  });
+
+  useFilterSync({
+    q: nameQuery,
+    state: stateFilter === ALL ? undefined : stateFilter,
+    chamber: chamberFilter === ALL ? undefined : chamberFilter,
+  });
 
   const hasActiveFilters =
     nameQuery !== "" || stateFilter !== ALL || chamberFilter !== ALL;

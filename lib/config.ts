@@ -37,6 +37,8 @@ const envSchema = z.object({
   campaigns__webhook_secret: z.string().optional(),
   unsubscribe__secret: z.string().optional(),
   org__postal_address: z.string().optional(),
+  mobilize__org_id: z.coerce.number().int().positive().optional(),
+  mobilize__base_url: z.string().url().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -81,6 +83,8 @@ function getEnv(): Env {
     campaigns__webhook_secret: process.env.campaigns__webhook_secret,
     unsubscribe__secret: process.env.unsubscribe__secret,
     org__postal_address: process.env.org__postal_address,
+    mobilize__org_id: process.env.mobilize__org_id,
+    mobilize__base_url: process.env.mobilize__base_url,
   });
   return cachedEnv;
 }
@@ -292,5 +296,18 @@ export const config = {
       throw new Error("Missing unsubscribe__secret configuration");
     }
     return secret;
+  },
+
+  /**
+   * Mobilize public events API. Used to populate the /events page.
+   * Both env vars are optional and fall back to JDCA's public defaults.
+   * Env: mobilize__org_id, mobilize__base_url.
+   */
+  get mobilize(): { orgId: number; baseUrl: string } {
+    const e = getEnv();
+    return {
+      orgId: e.mobilize__org_id ?? 3499,
+      baseUrl: e.mobilize__base_url ?? "https://api.mobilize.us/v1",
+    };
   },
 };
