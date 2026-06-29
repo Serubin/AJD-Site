@@ -27,6 +27,8 @@ const envSchema = z.object({
   nocodb__campaign_sends__view_id: z.string().optional(),
   features__whatsapp_link: z.string().optional(),
   features__geocodio_api_key: z.string().optional(),
+  features__email_enabled: z.string().optional(),
+  features__sms_enabled: z.string().optional(),
   twilio__from_email: z.string().optional(),
   twilio__from_name: z.string().optional(),
   twilio__account_sid: z.string().optional(),
@@ -68,6 +70,8 @@ function getEnv(): Env {
       process.env.nocodb__campaign_sends__view_id,
     features__whatsapp_link: process.env.features__whatsapp_link,
     features__geocodio_api_key: process.env.features__geocodio_api_key,
+    features__email_enabled: process.env.features__email_enabled,
+    features__sms_enabled: process.env.features__sms_enabled,
     twilio__from_email: process.env.twilio__from_email,
     twilio__from_name: process.env.twilio__from_name,
     twilio__account_sid: process.env.twilio__account_sid,
@@ -79,6 +83,19 @@ function getEnv(): Env {
     org__postal_address: process.env.org__postal_address,
   });
   return cachedEnv;
+}
+
+/**
+ * Interpret an optional env flag as a boolean. Treats false/0/no/off
+ * (case-insensitive) as false; unset or any other value falls back to
+ * `defaultValue` (channels default to enabled).
+ */
+function parseFlag(value: string | undefined, defaultValue = true): boolean {
+  const v = value?.trim().toLowerCase();
+  if (v === undefined || v === "") return defaultValue;
+  if (["false", "0", "no", "off"].includes(v)) return false;
+  if (["true", "1", "yes", "on"].includes(v)) return true;
+  return defaultValue;
 }
 
 function requireTableView(
@@ -192,6 +209,20 @@ export const config = {
       e.features__whatsapp_link ?? undefined,
       geocodioApiKey: e.features__geocodio_api_key,
     };
+  },
+
+  /**
+   * Channel kill-switches. Independent of whether credentials are configured:
+   * a channel must be both enabled AND configured to actually send. Default on,
+   * so existing deployments are unaffected. Env: features__email_enabled,
+   * features__sms_enabled (false/0/no/off to disable).
+   */
+  get emailEnabled(): boolean {
+    return parseFlag(getEnv().features__email_enabled);
+  },
+
+  get smsEnabled(): boolean {
+    return parseFlag(getEnv().features__sms_enabled);
   },
 
   /**
