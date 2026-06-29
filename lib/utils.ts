@@ -14,12 +14,23 @@ export function lazyInit<T>(factory: () => T): () => T {
   };
 }
 
-/** Append a `refcode` query param to a URL, overwriting any existing value. */
-export function appendRefcode(
-  url: string,
-  code: string = "american-jews-for-democracy",
-): string {
-  const u = new URL(url);
-  u.searchParams.set("refcode", code);
-  return u.toString();
+/**
+ * Add our attribution param to an outbound action URL, keyed off the
+ * destination host: ActBlue uses `refcode`, Mobilize uses `utm_source`.
+ * Existing values for that param are overwritten. Unknown hosts and
+ * malformed/relative URLs are returned untouched.
+ */
+export function withTracking(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (host === "actblue.com" || host.endsWith(".actblue.com")) {
+      u.searchParams.set("refcode", "aj4d");
+    } else if (host === "mobilize.us" || host.endsWith(".mobilize.us")) {
+      u.searchParams.set("utm_source", "aj4d");
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
 }

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Heart, HandHelping, Search, RotateCcw } from "lucide-react";
 import type { CandidateRecord } from "@/lib/candidates";
-import { appendRefcode } from "@/lib/utils";
+import { withTracking } from "@/lib/utils";
 
 function initials(name: string): string {
   return name
@@ -154,7 +154,7 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
         <div className="flex gap-3">
           {candidate.DonateUrl && (
             <Link
-              href={appendRefcode(candidate.DonateUrl)}
+              href={withTracking(candidate.DonateUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1"

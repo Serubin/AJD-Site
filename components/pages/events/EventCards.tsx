@@ -21,6 +21,7 @@ import {
   type DateRange,
 } from "./EventDateRangeFilter";
 import { humanizeEventType } from "@/lib/eventTypes";
+import { withTracking } from "@/lib/utils";
 import type { EventRecord, EventTimeslot } from "@/lib/events";
 import type { CandidateRecord } from "@/lib/candidates";
 
@@ -105,7 +106,9 @@ interface Props {
   fetchError: boolean;
 }
 
-const MOBILIZE_FALLBACK_URL = "https://www.mobilize.us/jewishdems/";
+const MOBILIZE_FALLBACK_URL = withTracking(
+  "https://www.mobilize.us/jewishdems/",
+);
 
 export function EventCards({ events, candidates, fetchError }: Props) {
   const searchParams = useSearchParams();
