@@ -36,6 +36,14 @@ interface SignupOptions extends NotificationOptions {
 
 type SendOptions = UpdateOptions | SignupOptions;
 
+/** Outcome of an attempt to deliver a link, used to keep the UI truthful. */
+export type DeliveryResult = {
+  delivered: boolean;
+  channel: "email" | "sms" | null;
+};
+
+const ALREADY_DELIVERED: DeliveryResult = { delivered: true, channel: null };
+
 function resolveTemplateVars(opts: SendOptions): Record<string, string> {
   const base = { app_name: APP_NAME, link_expiry_note: LINK_EXPIRY_NOTE };
   if (opts.kind === "update") {
@@ -55,14 +63,14 @@ function resolveUrl(opts: SendOptions): string {
   return opts.kind === "update" ? opts.updateUrl : opts.confirmUrl;
 }
 
-async function sendNotificationBody(opts: SendOptions): Promise<void> {
+async function sendNotificationBody(opts: SendOptions): Promise<DeliveryResult> {
   if (wasDelivered(opts.linkSlug)) {
     log.debug("notification skipped: already delivered on this instance", {
       kind: opts.kind,
       userId: opts.userId,
       slug: opts.linkSlug,
     });
-    return;
+    return ALREADY_DELIVERED;
   }
 
   const templates = await loadNotificationTemplates();
@@ -88,7 +96,9 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
   const htmlBody = markdownToHtml(renderedMarkdown);
   const subject = renderTemplate(templates[subjectKey], vars);
 
-  if (email && config.twilioEmail) {
+  // Email is preferred when present; SMS is only a fallback for users without
+  // an email. A channel must be both enabled and configured to be attempted.
+  if (email && config.emailEnabled && config.twilioEmail) {
     try {
       await sendEmail(email, subject, textBody, htmlBody, undefined, {
         userId: opts.userId,
@@ -96,19 +106,19 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
         slug: opts.linkSlug,
       });
       markDelivered(opts.linkSlug);
-      return;
+      return { delivered: true, channel: "email" };
     } catch (err) {
       log.error("Twilio email send failed", { err, kind: opts.kind });
     }
   }
 
-  if (!email && phone && config.twilioSms) {
+  if (!email && phone && config.smsEnabled && config.twilioSms) {
     if (opts.smsOptedOut) {
       log.info("transactional SMS suppressed: user opted out of SMS", {
         kind: opts.kind,
         userId: opts.userId,
       });
-      return;
+      return { delivered: false, channel: null };
     }
     try {
       await sendSms(phone, resolveSmsBody(opts), {
@@ -117,7 +127,7 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
         slug: opts.linkSlug,
       });
       markDelivered(opts.linkSlug);
-      return;
+      return { delivered: true, channel: "sms" };
     } catch (err) {
       log.error("Twilio SMS send failed", { err, kind: opts.kind });
     }
@@ -128,15 +138,22 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
   let reason: string;
   if (!email && !phone) {
     reason = "no valid email or phone on record";
+  } else if (email && !config.emailEnabled) {
+    reason = "email present but email channel is disabled (SMS is skipped when an email exists)";
   } else if (email && !config.twilioEmail) {
     reason = "email present but email transport not configured (SMS is skipped when an email exists)";
-  } else if (email && config.twilioEmail) {
-    reason = "email transport configured but send threw (see prior error)";
-  } else {
+  } else if (email) {
+    reason = "email channel enabled and configured but send threw (see prior error)";
+  } else if (phone && !config.smsEnabled) {
+    reason = "phone present but SMS channel is disabled";
+  } else if (phone && !config.twilioSms) {
     reason = "phone present but SMS transport not configured";
+  } else {
+    reason = "SMS channel enabled and configured but send threw (see prior error)";
   }
 
   log.warn("link not delivered", {
+
     kind: opts.kind,
     userId: opts.userId,
     reason,
@@ -146,6 +163,7 @@ async function sendNotificationBody(opts: SendOptions): Promise<void> {
     smsConfigured: !!config.twilioSms,
     url: resolveUrl(opts),
   });
+  return { delivered: false, channel: null };
 }
 
 /**
@@ -159,9 +177,11 @@ export async function sendUpdateLink(options: {
   updateUrl: string;
   userId?: number;
   smsOptedOut?: boolean;
-}): Promise<void> {
-  return oncePerSlug(options.linkSlug, () =>
-    sendNotificationBody({ kind: "update", ...options }),
+}): Promise<DeliveryResult> {
+  return oncePerSlug(
+    options.linkSlug,
+    () => sendNotificationBody({ kind: "update", ...options }),
+    () => ALREADY_DELIVERED,
   );
 }
 
@@ -176,8 +196,10 @@ export async function sendSignupConfirmation(options: {
   confirmUrl: string;
   userId?: number;
   smsOptedOut?: boolean;
-}): Promise<void> {
-  return oncePerSlug(options.linkSlug, () =>
-    sendNotificationBody({ kind: "signup", ...options }),
+}): Promise<DeliveryResult> {
+  return oncePerSlug(
+    options.linkSlug,
+    () => sendNotificationBody({ kind: "signup", ...options }),
+    () => ALREADY_DELIVERED,
   );
 }

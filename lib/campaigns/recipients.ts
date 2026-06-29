@@ -1,3 +1,4 @@
+import { config } from "../config";
 import { smsE164 } from "../phone";
 import { listAllUsers, type UserRecord } from "../users";
 
@@ -22,17 +23,18 @@ function isVerified(user: UserRecord): boolean {
 }
 
 /**
- * Resolve the delivery channel for a single user, honoring per-channel opt-outs.
- * Email is preferred; SMS is only used when there is no usable email.
+ * Resolve the delivery channel for a single user, honoring per-channel opt-outs
+ * and the global channel kill-switches. Email is preferred; SMS is only used
+ * when there is no usable email.
  */
 export function resolveChannel(user: UserRecord): Recipient {
   const email = validEmail(user.Email);
   const phone = smsE164(user.Phone);
 
-  if (email && !user.EmailOptedOut) {
+  if (email && !user.EmailOptedOut && config.emailEnabled) {
     return { user, channel: "email", email, phone };
   }
-  if (!email && phone && !user.SmsOptedOut) {
+  if (!email && phone && !user.SmsOptedOut && config.smsEnabled) {
     return { user, channel: "sms", phone };
   }
   return { user, channel: "skip", email, phone };
