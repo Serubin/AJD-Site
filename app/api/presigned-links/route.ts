@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { config } from "@/lib/config";
 import { logger } from "@/lib/logger";
-import { sendUpdateLink, type DeliveryResult } from "@/lib/notifications";
+import {
+  sendUpdateLink,
+  canDeliverLink,
+  type DeliveryResult,
+} from "@/lib/notifications";
 import { createPresignedLink, findValidLink, expireLink } from "@/lib/presignedLinks";
 import {
   findUser,
@@ -62,6 +66,25 @@ export async function POST(request: NextRequest) {
       log.info("email re-opt-in via form", { userId: user.Id });
     }
 
+    // Decide deliverability up front, independent of any existing link. A
+    // failed send can leave a valid-but-undelivered link lingering for hours;
+    // if we keyed "already delivered" off link reuse (isNew), a later lookup
+    // would reuse that phantom link and wrongly report "check your inbox". So
+    // we answer "can we reach this user?" from channel config + the record, and
+    // only then create/reuse a link. When unreachable (e.g. SMS is the only
+    // channel and it's disabled), return 200/delivered:false so the auto-lookup
+    // silently no-ops rather than surfacing an error the user can't act on.
+    if (
+      !canDeliverLink({
+        toEmail: user.Email || undefined,
+        toPhone: user.Phone || undefined,
+        smsOptedOut,
+      })
+    ) {
+      log.info("update link not deliverable; no-op", { userId: user.Id });
+      return NextResponse.json({ success: true, delivered: false, channel: null });
+    }
+
     const { link, isNew } = await createPresignedLink(user.Id);
     const baseUrl = config.app.baseUrl;
     const updateUrl = `${baseUrl}/join-us/${link.Slug}`;
@@ -71,7 +94,8 @@ export async function POST(request: NextRequest) {
       isNew,
       sent: isNew,
     });
-    // A pre-existing valid link was already delivered when it was created.
+    // A pre-existing valid link was already delivered when it was created
+    // (deliverability was confirmed above before any link is ever persisted).
     let delivery: DeliveryResult = { delivered: true, channel: null };
     if (isNew) {
       delivery = await sendUpdateLink({
@@ -84,11 +108,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // A non-delivery here is not a server error: the user exists but is simply
-    // unreachable right now (e.g. SMS is their only channel and it's disabled).
-    // Return 200 with delivered:false so the auto-lookup can silently no-op
-    // rather than surfacing an error the user can't act on.
     if (!delivery.delivered) {
+      // The channel looked available but the send threw. Don't leave a valid
+      // undelivered link behind, or a later lookup would reuse it and wrongly
+      // report delivery. Expire it and no-op.
+      if (link.Id) {
+        await expireLink(link.Id);
+      }
       return NextResponse.json({ success: true, delivered: false, channel: null });
     }
 
