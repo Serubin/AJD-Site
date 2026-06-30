@@ -11,7 +11,7 @@ export async function getJoinUsFormProps(): Promise<{
   statusContent: StatusPanelContent;
   whatsappLink: string | undefined;
 }> {
-  const sections = await getPageContent("GetInvolved");
+  const sections = await getPageContent("JoinUs");
 
   const signUp = sections.SignUpSuccess?.parsed as SectionShape | undefined;
   const update = sections.UpdateSuccess?.parsed as SectionShape | undefined;
