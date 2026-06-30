@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Terms and conditions governing your use of the American Jews for Democracy website and communications.",
 };
 
-const LAST_UPDATED = "June 10, 2026";
+const LAST_UPDATED = "June 29, 2026";
 
 export default function TermsPage() {
   return (
@@ -96,6 +96,16 @@ export default function TermsPage() {
           Our website may contain links to third-party websites or services. We
           are not responsible for the content, policies, or practices of third
           parties. Accessing third-party sites is at your own risk.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Endorsements">
+        <p>
+          Endorsements published on this website represent the independent
+          views of American Jews for Democracy and are not made on behalf of or
+          in coordination with any candidate, campaign, political party, or
+          committee. Unless otherwise noted, no candidate has requested,
+          approved, or authorized these endorsements.
         </p>
       </LegalSection>
 

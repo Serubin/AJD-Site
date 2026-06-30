@@ -18,6 +18,14 @@ export default async function CandidatesPage() {
         </div>
 
         <CandidateCards candidates={candidates} />
+
+        <p className="text-muted-foreground/70 font-serif text-sm max-w-3xl mx-auto text-center mt-16">
+          Endorsements published on this website represent the independent
+          views of American Jews for Democracy and are not made on behalf of or
+          in coordination with any candidate, campaign, political party, or
+          committee. Unless otherwise noted, no candidate has requested,
+          approved, or authorized these endorsements.
+        </p>
       </div>
     </main>
   );
