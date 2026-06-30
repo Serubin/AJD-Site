@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +32,100 @@ function initials(name: string): string {
 
 function isSenate(district: string): boolean {
   return district.endsWith("-Sen");
+}
+
+// ---------------------------------------------------------------------------
+// Expandable description
+// ---------------------------------------------------------------------------
+
+// Measure layout synchronously before paint on the client, but fall back to a
+// plain effect during SSR (useLayoutEffect is a no-op on the server and warns).
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+const COLLAPSED_LINES = 2;
+
+function ExpandableDescription({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const [collapsedHeight, setCollapsedHeight] = useState<number>();
+  // The text always renders at full height; the wrapper clips it. Don't animate
+  // until the user actually toggles, so the card doesn't animate on first paint
+  // or when the serif font swaps in (display=swap).
+  const animateRef = useRef(false);
+
+  useIsomorphicLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 0;
+      const collapsed = lineHeight * COLLAPSED_LINES;
+      setCollapsedHeight(collapsed);
+      // +1px tolerance so an exactly-two-line bio isn't treated as overflowing.
+      setOverflows(el.scrollHeight > collapsed + 1);
+    };
+    measure();
+
+    // Re-measure once fonts finish loading — the swap reflows the text but the
+    // ResizeObserver below won't fire if the box height is unchanged.
+    let cancelled = false;
+    if ("fonts" in document) {
+      document.fonts.ready.then(() => {
+        if (!cancelled) measure();
+      });
+    }
+
+    // Catch responsive width changes that rewrap the text.
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+    };
+  }, [text]);
+
+  const collapsed = overflows && !expanded;
+
+  function toggle() {
+    animateRef.current = true;
+    setExpanded((v) => !v);
+  }
+
+  return (
+    <div className="mb-4">
+      <motion.div
+        initial={false}
+        animate={{ height: collapsed ? (collapsedHeight ?? 0) : "auto" }}
+        transition={
+          animateRef.current
+            ? { duration: 0.3, ease: "easeInOut" }
+            : { duration: 0 }
+        }
+        style={{ overflow: "hidden" }}
+      >
+        <p
+          ref={ref}
+          onClick={overflows ? toggle : undefined}
+          className={`text-muted-foreground font-serif text-sm leading-relaxed ${
+            overflows ? "cursor-pointer" : ""
+          }`}
+        >
+          {text}
+        </p>
+      </motion.div>
+      {overflows && (
+        <button
+          type="button"
+          onClick={toggle}
+          className="mt-1 text-xs font-semibold text-primary hover:underline"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -147,9 +241,7 @@ function CandidateCard({ candidate }: { candidate: CandidateRecord }) {
           </div>
         </div>
 
-        <p className="text-muted-foreground font-serif text-sm leading-relaxed mb-4 line-clamp-2">
-          {candidate.Description}
-        </p>
+        <ExpandableDescription text={candidate.Description} />
 
         <div className="flex gap-3">
           {candidate.DonateUrl && (
