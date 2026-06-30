@@ -50,7 +50,7 @@ export default function HomePage({ tagline }: HomePageProps) {
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="max-w-m w-[340px] sm:w-[400px] md:w-[480px] h-auto"
+              className="w-[340px] max-w-full sm:w-[400px] md:w-[480px] h-auto"
             />
           </motion.div>
 
