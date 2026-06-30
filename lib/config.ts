@@ -29,6 +29,7 @@ const envSchema = z.object({
   features__geocodio_api_key: z.string().optional(),
   features__email_enabled: z.string().optional(),
   features__sms_enabled: z.string().optional(),
+  features__bypass_verification: z.string().optional(),
   twilio__from_email: z.string().optional(),
   twilio__from_name: z.string().optional(),
   twilio__account_sid: z.string().optional(),
@@ -74,6 +75,7 @@ function getEnv(): Env {
     features__geocodio_api_key: process.env.features__geocodio_api_key,
     features__email_enabled: process.env.features__email_enabled,
     features__sms_enabled: process.env.features__sms_enabled,
+    features__bypass_verification: process.env.features__bypass_verification,
     twilio__from_email: process.env.twilio__from_email,
     twilio__from_name: process.env.twilio__from_name,
     twilio__account_sid: process.env.twilio__account_sid,
@@ -227,6 +229,17 @@ export const config = {
 
   get smsEnabled(): boolean {
     return parseFlag(getEnv().features__sms_enabled);
+  },
+
+  /**
+   * Temporary bypass for the verify-by-link gate. When on, a signup whose phone
+   * matches an existing *unverified* record (e.g. an imported contact we can't
+   * yet text) merges onto that record and re-verifies via the mandatory email
+   * link instead of being rejected as a duplicate. Default OFF — opt-in only.
+   * Env: features__bypass_verification (true/1/yes/on to enable).
+   */
+  get bypassVerification(): boolean {
+    return parseFlag(getEnv().features__bypass_verification, false);
   },
 
   /**

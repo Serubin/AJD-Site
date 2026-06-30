@@ -14,7 +14,10 @@ export async function parseJsonBody(
 
 export const joinUsPayloadSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  email: z.string().min(1, "Email is required"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Enter a valid email address"),
   phone: z.string().optional().default(""),
   states: z.array(z.string()).min(1, "At least one state is required"),
   congressionalDistrict: z.string().optional().default(""),
