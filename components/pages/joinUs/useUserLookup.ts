@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { csrfFetch } from "@/lib/csrf";
 import { toE164 } from "@/lib/phone";
-import { useToast } from "@/hooks/use-toast";
 import { usePlausible } from "next-plausible";
 
 interface UseUserLookupOptions {
@@ -9,7 +8,6 @@ interface UseUserLookupOptions {
 }
 
 export function useUserLookup({ enabled }: UseUserLookupOptions) {
-  const { toast } = useToast();
   const plausible = usePlausible();
   const [existingUserFound, setExistingUserFound] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
@@ -53,20 +51,16 @@ export function useUserLookup({ enabled }: UseUserLookupOptions) {
             }),
           });
 
-          if (!linkRes.ok) {
-            throw new Error("Failed to send update link");
-          }
+          // Only surface the "we sent you a link" panel when a link was actually
+          // delivered. If it couldn't be delivered (e.g. SMS is the user's only
+          // channel and it's disabled) or the request failed, silently no-op so
+          // the user can keep signing up normally -- no error, no panel.
+          if (!linkRes.ok) return;
+          const linkData = await linkRes.json();
+          if (!linkData.delivered) return;
+
           plausible("user-data-update-link-sent");
           setExistingUserFound(true);
-        } catch (err) {
-          toast({
-            title: "Something went wrong",
-            description: "We couldn't send the update link. Please try again.",
-            variant: "destructive",
-          });
-          plausible("user-data-update-link-failed", {
-            props: { error: err instanceof Error ? err.message : "Unknown error" },
-          });
         } finally {
           setIsLookingUp(false);
         }
@@ -74,7 +68,7 @@ export function useUserLookup({ enabled }: UseUserLookupOptions) {
         // Silently ignore lookup failures -- user can still sign up normally
       }
     },
-    [enabled, toast, plausible],
+    [enabled, plausible],
   );
 
   const scheduleLookup = useCallback(
