@@ -44,6 +44,34 @@ export type DeliveryResult = {
 
 const ALREADY_DELIVERED: DeliveryResult = { delivered: true, channel: null };
 
+/**
+ * Whether a link could be delivered to this recipient right now — without
+ * sending anything. Mirrors the channel-selection logic in
+ * `sendNotificationBody` so callers can decide up front whether to even start a
+ * link flow. This is intentionally independent of any existing presigned link:
+ * a link row may linger after a failed send, so "can we reach this user" must be
+ * answered from channel config + the user record, not from link state.
+ */
+export function canDeliverLink(opts: {
+  toEmail?: string;
+  toPhone?: string;
+  smsOptedOut?: boolean;
+}): boolean {
+  const email = trimEmail(opts.toEmail);
+  const phone = smsE164(opts.toPhone);
+  if (email && config.emailEnabled && config.twilioEmail) return true;
+  if (
+    !email &&
+    phone &&
+    config.smsEnabled &&
+    config.twilioSms &&
+    !opts.smsOptedOut
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function resolveTemplateVars(opts: SendOptions): Record<string, string> {
   const base = { app_name: APP_NAME, link_expiry_note: LINK_EXPIRY_NOTE };
   if (opts.kind === "update") {
