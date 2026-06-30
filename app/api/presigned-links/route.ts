@@ -84,17 +84,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // A non-delivery here is not a server error: the user exists but is simply
+    // unreachable right now (e.g. SMS is their only channel and it's disabled).
+    // Return 200 with delivered:false so the auto-lookup can silently no-op
+    // rather than surfacing an error the user can't act on.
     if (!delivery.delivered) {
-      return NextResponse.json(
-        {
-          error: "We couldn't deliver an update link to you right now.",
-          delivered: false,
-        },
-        { status: 502 },
-      );
+      return NextResponse.json({ success: true, delivered: false, channel: null });
     }
 
-    return NextResponse.json({ success: true, channel: delivery.channel });
+    return NextResponse.json({
+      success: true,
+      delivered: true,
+      channel: delivery.channel,
+    });
   } catch (error) {
     return handleApiError(error, "Failed to create presigned link");
   }

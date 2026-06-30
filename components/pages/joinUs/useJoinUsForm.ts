@@ -41,7 +41,6 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
 
   const {
     existingUserFound,
-    isLookingUp,
     scheduleLookup,
     flushLookup: rawFlushLookup,
   } = useUserLookup({ enabled: !isUpdateMode });
@@ -151,7 +150,9 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
     setCongressionalDistrict,
 
     errors,
-    isPending: isPending || isLookingUp,
+    // The background lookup deliberately does not drive the visible submitting
+    // state -- it runs silently and only surfaces a panel on success.
+    isPending,
     success,
     existingUserFound,
 
