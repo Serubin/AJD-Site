@@ -4,7 +4,14 @@ import { logger } from "@/lib/logger";
 import { sendSignupConfirmation } from "@/lib/notifications";
 import { createPresignedLink } from "@/lib/presignedLinks";
 import { runExclusive } from "@/lib/runExclusive";
-import { createUser, findUser, checkEmailPhoneUniqueness } from "@/lib/users";
+import {
+  createUser,
+  findUser,
+  findUserByPhone,
+  updateUser,
+  checkEmailPhoneUniqueness,
+  type UserRecord,
+} from "@/lib/users";
 import {
   parseJsonBody,
   joinUsPayloadSchema,
@@ -53,20 +60,54 @@ export async function POST(request: NextRequest) {
 
   try {
     return await runExclusive(signupKey, async () => {
-      const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(email, phone);
+      // Bypass mode: a signup whose phone matches an existing *unverified*
+      // record (e.g. an imported contact we can't yet text) merges onto that
+      // record instead of being rejected as a duplicate phone. It is then
+      // re-verified via the mandatory email link below. A verified phone match
+      // is still treated as a duplicate.
+      let mergeTarget: UserRecord | null = null;
+      if (config.bypassVerification && phone.trim()) {
+        const byPhone = await findUserByPhone(phone);
+        if (byPhone?.Id && byPhone.Verified === false) {
+          mergeTarget = byPhone;
+        }
+      }
+
+      const { emailTaken, phoneTaken } = await checkEmailPhoneUniqueness(
+        email,
+        phone,
+        mergeTarget?.Id,
+      );
+      // With a merge target its own phone is excluded, so phoneTaken reflects a
+      // *different* record. A taken email (any other record) still blocks — we
+      // won't collapse two distinct records together.
       if (emailTaken || phoneTaken) {
-        log.info("signup rejected: duplicate", { emailTaken, phoneTaken });
+        log.info("signup rejected: duplicate", {
+          emailTaken,
+          phoneTaken,
+          merge: !!mergeTarget,
+        });
         return buildConflictResponse(emailTaken, phoneTaken);
       }
 
-      const user = await createUser({
-        name,
-        email,
-        phone,
-        states,
-        congressionalDistrict,
+      const user = mergeTarget
+        ? await updateUser(mergeTarget.Id!, {
+            name,
+            email,
+            phone,
+            states,
+            congressionalDistrict,
+          })
+        : await createUser({
+            name,
+            email,
+            phone,
+            states,
+            congressionalDistrict,
+          });
+      log.info(mergeTarget ? "user merged (verification bypass)" : "user created", {
+        userId: user.Id,
       });
-      log.info("user created", { userId: user.Id });
 
       if (user.Id) {
         const { link, isNew } = await createPresignedLink(user.Id);
