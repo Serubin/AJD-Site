@@ -12,8 +12,6 @@ export function validateForm(fields: {
   phoneNational: string;
   phone: string;
   states: string[];
-  smsConsent: boolean;
-  requireSmsConsent: boolean;
 }): FormErrors {
   const errors: FormErrors = {};
   if (!fields.name.trim()) errors.name = "Name is required";
@@ -24,14 +22,6 @@ export function validateForm(fields: {
   }
   if (fields.phoneCountryCode === "1" && fields.phoneNational.length > 0 && !fields.phone) {
     errors.phone = "Enter a valid 10-digit number";
-  }
-  if (
-    fields.requireSmsConsent &&
-    fields.phoneNational.length > 0 &&
-    !fields.smsConsent
-  ) {
-    errors.smsConsent =
-      "Please check the box to agree to receive text messages, or remove your phone number.";
   }
   if (fields.states.length === 0) errors.states = "At least one state is required";
   return errors;
