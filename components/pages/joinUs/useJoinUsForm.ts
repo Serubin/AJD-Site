@@ -65,8 +65,6 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
       phoneNational,
       phone,
       states,
-      smsConsent,
-      requireSmsConsent: !isUpdateMode,
     });
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);

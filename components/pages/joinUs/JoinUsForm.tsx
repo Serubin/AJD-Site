@@ -265,11 +265,6 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
                           .
                         </p>
                       </div>
-                      {errors.smsConsent && (
-                        <p className="text-sm text-destructive">
-                          {errors.smsConsent}
-                        </p>
-                      )}
                     </div>
                   )}
 

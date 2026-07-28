@@ -30,6 +30,8 @@ export interface CreateUserInput {
   congressionalDistrict: string;
   smsConsentAt?: string | null;
   smsConsentVersion?: string | null;
+  smsOptedOut?: boolean;
+  smsOptedOutAt?: string | null;
 }
 
 /**
@@ -47,7 +49,7 @@ export class UsersDAO extends BaseViewDAO {
    * States are stored as a comma-separated string (e.g. "CA,NY").
    */
   async createUser(input: CreateUserInput): Promise<UserRecord> {
-    return this.createRecord<UserRecord>({
+    const fields: Record<string, unknown> = {
       Name: input.name,
       Email: input.email,
       Phone: input.phone,
@@ -56,7 +58,13 @@ export class UsersDAO extends BaseViewDAO {
       Verified: false,
       SmsConsentAt: input.smsConsentAt ?? null,
       SmsConsentVersion: input.smsConsentVersion ?? null,
-    });
+    };
+    // A phone given without ticking the consent box is stored opted out of SMS.
+    if (input.smsOptedOut !== undefined) {
+      fields.SmsOptedOut = input.smsOptedOut;
+      fields.SmsOptedOutAt = input.smsOptedOutAt ?? null;
+    }
+    return this.createRecord<UserRecord>(fields);
   }
 
   /**
@@ -125,6 +133,10 @@ export class UsersDAO extends BaseViewDAO {
     if (input.smsConsentAt !== undefined) {
       fields.SmsConsentAt = input.smsConsentAt;
       fields.SmsConsentVersion = input.smsConsentVersion ?? null;
+    }
+    if (input.smsOptedOut !== undefined) {
+      fields.SmsOptedOut = input.smsOptedOut;
+      fields.SmsOptedOutAt = input.smsOptedOutAt ?? null;
     }
     return this.updateRecord<UserRecord>(id, fields);
   }

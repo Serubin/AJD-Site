@@ -59,24 +59,15 @@ export async function POST(request: NextRequest) {
   const { name, email, phone, states, congressionalDistrict, smsConsent } =
     parsed.data;
 
-  // A phone number may only be stored with active SMS consent. The client blocks
-  // this, but the API is publicly reachable, so enforce the invariant server-side.
-  if (phone && !smsConsent) {
-    return NextResponse.json(
-      {
-        error: "SMS consent is required when a phone number is provided.",
-        errors: {
-          smsConsent:
-            "Please agree to receive text messages, or remove your phone number.",
-        },
-      },
-      { status: 400 },
-    );
-  }
-
-  // Timestamp consent server-side (client clock is untrusted). Null when no phone.
-  const smsConsentAt = phone && smsConsent ? new Date().toISOString() : null;
+  // Derive SMS state from the phone + consent checkbox. Consent is timestamped
+  // server-side (client clock is untrusted). A phone submitted *without* ticking
+  // the box is kept as a contact but opted out of SMS rather than rejected, so
+  // the signup still succeeds. No phone: leave all SMS fields untouched.
+  const now = new Date().toISOString();
+  const smsConsentAt = phone && smsConsent ? now : null;
   const smsConsentVersion = phone && smsConsent ? SMS_CONSENT_VERSION : null;
+  const smsOptedOut = phone ? !smsConsent : undefined;
+  const smsOptedOutAt = phone ? (smsConsent ? null : now) : undefined;
 
   const signupKey = `signup:${email.trim().toLowerCase()}`;
 
@@ -121,6 +112,8 @@ export async function POST(request: NextRequest) {
             congressionalDistrict,
             smsConsentAt,
             smsConsentVersion,
+            smsOptedOut,
+            smsOptedOutAt,
           })
         : await createUser({
             name,
@@ -130,6 +123,8 @@ export async function POST(request: NextRequest) {
             congressionalDistrict,
             smsConsentAt,
             smsConsentVersion,
+            smsOptedOut,
+            smsOptedOutAt,
           });
       log.info(mergeTarget ? "user merged (verification bypass)" : "user created", {
         userId: user.Id,
