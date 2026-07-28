@@ -6,6 +6,7 @@ export interface FormErrors {
   phone?: string;
   states?: string;
   congressionalDistrict?: string;
+  smsConsent?: string;
 }
 
 export interface JoinUsFormInitialData {

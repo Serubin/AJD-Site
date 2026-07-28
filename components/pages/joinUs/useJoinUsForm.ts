@@ -34,6 +34,7 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
   const [congressionalDistrict, setCongressionalDistrict] = useState(
     initialData?.congressionalDistrict ?? "",
   );
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const [isPending, setIsPending] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -64,6 +65,8 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
       phoneNational,
       phone,
       states,
+      smsConsent,
+      requireSmsConsent: !isUpdateMode,
     });
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -87,7 +90,7 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
           })
         : await csrfFetch("/api/users", {
             method: "POST",
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ ...payload, smsConsent }),
           });
 
       if (!res.ok) {
@@ -148,6 +151,8 @@ export function useJoinUsForm({ mode, initialData, slug }: UseJoinUsFormOptions)
     setStates,
     congressionalDistrict,
     setCongressionalDistrict,
+    smsConsent,
+    setSmsConsent,
 
     errors,
     // The background lookup deliberately does not drive the visible submitting

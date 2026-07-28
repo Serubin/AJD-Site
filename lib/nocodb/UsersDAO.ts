@@ -16,6 +16,10 @@ export interface UserRecord {
   SmsOptedOut?: boolean;
   EmailOptedOutAt?: string | null;
   SmsOptedOutAt?: string | null;
+  /** When the user actively consented to SMS at opt-in (null if no phone/consent). */
+  SmsConsentAt?: string | null;
+  /** Version of the SMS consent disclosure the user agreed to. */
+  SmsConsentVersion?: string | null;
 }
 
 export interface CreateUserInput {
@@ -24,6 +28,8 @@ export interface CreateUserInput {
   phone: string;
   states: string[];
   congressionalDistrict: string;
+  smsConsentAt?: string | null;
+  smsConsentVersion?: string | null;
 }
 
 /**
@@ -48,6 +54,8 @@ export class UsersDAO extends BaseViewDAO {
       States: input.states.join(","),
       CongressionalDistrict: input.congressionalDistrict,
       Verified: false,
+      SmsConsentAt: input.smsConsentAt ?? null,
+      SmsConsentVersion: input.smsConsentVersion ?? null,
     });
   }
 
@@ -104,13 +112,21 @@ export class UsersDAO extends BaseViewDAO {
    * Update an existing user record.
    */
   async updateUser(id: number, input: CreateUserInput): Promise<UserRecord> {
-    return this.updateRecord<UserRecord>(id, {
+    const fields: Record<string, unknown> = {
       Name: input.name,
       Email: input.email,
       Phone: input.phone,
       States: input.states.join(","),
       CongressionalDistrict: input.congressionalDistrict,
-    });
+    };
+    // Only record consent when explicitly supplied (e.g. the merge-on-signup
+    // path). Omitting it leaves any existing consent untouched, so the
+    // presigned-link update flow never clobbers a prior opt-in.
+    if (input.smsConsentAt !== undefined) {
+      fields.SmsConsentAt = input.smsConsentAt;
+      fields.SmsConsentVersion = input.smsConsentVersion ?? null;
+    }
+    return this.updateRecord<UserRecord>(id, fields);
   }
 
   /**

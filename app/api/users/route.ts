@@ -18,6 +18,7 @@ import {
   buildConflictResponse,
   handleApiError,
 } from "@/lib/api";
+import { SMS_CONSENT_VERSION } from "@/lib/consent";
 
 const log = logger.child({ component: "signup" });
 
@@ -55,7 +56,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: first.message }, { status: 400 });
   }
 
-  const { name, email, phone, states, congressionalDistrict } = parsed.data;
+  const { name, email, phone, states, congressionalDistrict, smsConsent } =
+    parsed.data;
+
+  // A phone number may only be stored with active SMS consent. The client blocks
+  // this, but the API is publicly reachable, so enforce the invariant server-side.
+  if (phone && !smsConsent) {
+    return NextResponse.json(
+      {
+        error: "SMS consent is required when a phone number is provided.",
+        errors: {
+          smsConsent:
+            "Please agree to receive text messages, or remove your phone number.",
+        },
+      },
+      { status: 400 },
+    );
+  }
+
+  // Timestamp consent server-side (client clock is untrusted). Null when no phone.
+  const smsConsentAt = phone && smsConsent ? new Date().toISOString() : null;
+  const smsConsentVersion = phone && smsConsent ? SMS_CONSENT_VERSION : null;
+
   const signupKey = `signup:${email.trim().toLowerCase()}`;
 
   try {
@@ -97,6 +119,8 @@ export async function POST(request: NextRequest) {
             phone,
             states,
             congressionalDistrict,
+            smsConsentAt,
+            smsConsentVersion,
           })
         : await createUser({
             name,
@@ -104,6 +128,8 @@ export async function POST(request: NextRequest) {
             phone,
             states,
             congressionalDistrict,
+            smsConsentAt,
+            smsConsentVersion,
           });
       log.info(mergeTarget ? "user merged (verification bypass)" : "user created", {
         userId: user.Id,

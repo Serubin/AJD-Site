@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Loader2, Send, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -97,6 +98,7 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
     phoneNational, setPhoneNational,
     states, setStates,
     congressionalDistrict, setCongressionalDistrict,
+    smsConsent, setSmsConsent,
     errors,
     isPending,
     success,
@@ -225,6 +227,52 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
                     optional
                   />
 
+                  {!isUpdateMode && (
+                    <div className="space-y-2 pt-2">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="sms-consent"
+                          checked={smsConsent}
+                          onCheckedChange={(checked) =>
+                            setSmsConsent(checked === true)
+                          }
+                          aria-describedby="sms-consent-text"
+                          className="mt-0.5"
+                        />
+                        <p
+                          id="sms-consent-text"
+                          className="text-xs text-white/60 leading-relaxed"
+                        >
+                          I agree to receive recurring text messages from
+                          American Jews for Democracy (AJD), such as updates and
+                          one-time verification codes. Message frequency varies
+                          (updates are fewer than once per month). Msg &amp; data
+                          rates may apply. Reply STOP to opt out, HELP for help.
+                          See our{" "}
+                          <Link
+                            href="/privacy"
+                            className="text-primary hover:underline"
+                          >
+                            Privacy Policy
+                          </Link>{" "}
+                          and{" "}
+                          <Link
+                            href="/terms"
+                            className="text-primary hover:underline"
+                          >
+                            Terms
+                          </Link>
+                          .
+                        </p>
+                      </div>
+                      {errors.smsConsent && (
+                        <p className="text-sm text-destructive">
+                          {errors.smsConsent}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     className="w-full bg-primary hover:bg-primary/90 text-background font-bold h-12 mt-2"
@@ -236,25 +284,30 @@ export function JoinUsForm({ mode, initialData, slug, statusContent, whatsappLin
                     />
                   </Button>
 
-                  <p className="text-xs text-white/50 text-center pt-2">
-                    By providing your phone number, you agree to receive text
-                    messages from American Jews for Democracy (AJD), such as
-                    updates and verification codes. Message frequency varies
-                    (updates are fewer than once per month). Message and data
-                    rates may apply. Reply STOP to opt out, HELP for help. See
-                    our{" "}
-                    <Link
-                      href="/privacy"
-                      className="text-primary hover:underline"
-                    >
-                      Privacy Policy
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/terms" className="text-primary hover:underline">
-                      Terms
-                    </Link>
-                    .
-                  </p>
+                  {isUpdateMode && (
+                    <p className="text-xs text-white/50 text-center pt-2">
+                      By providing your phone number, you agree to receive text
+                      messages from American Jews for Democracy (AJD), such as
+                      updates and verification codes. Message frequency varies
+                      (updates are fewer than once per month). Message and data
+                      rates may apply. Reply STOP to opt out, HELP for help. See
+                      our{" "}
+                      <Link
+                        href="/privacy"
+                        className="text-primary hover:underline"
+                      >
+                        Privacy Policy
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        href="/terms"
+                        className="text-primary hover:underline"
+                      >
+                        Terms
+                      </Link>
+                      .
+                    </p>
+                  )}
                 </form>
               </CardContent>
             </Card>

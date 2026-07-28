@@ -21,6 +21,7 @@ export const joinUsPayloadSchema = z.object({
   phone: z.string().optional().default(""),
   states: z.array(z.string()).min(1, "At least one state is required"),
   congressionalDistrict: z.string().optional().default(""),
+  smsConsent: z.boolean().optional().default(false),
 });
 
 export type JoinUsPayload = z.infer<typeof joinUsPayloadSchema>;
