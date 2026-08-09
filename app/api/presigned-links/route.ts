@@ -20,10 +20,35 @@ import {
   buildConflictResponse,
   handleApiError,
 } from "@/lib/api";
+import {
+  checkRateLimit,
+  clientIp,
+  normalizeIdentifier,
+  rateLimitResponse,
+  HOUR_MS,
+} from "@/lib/rateLimit";
 
 const log = logger.child({ component: "presigned-links" });
 
+/** A successful call delivers a real email or SMS, so keep the ceiling low. */
+const LINK_REQUEST_LIMIT = { limit: 10, windowMs: HOUR_MS };
+
+/**
+ * Charged against the target address rather than the caller. An IP limit alone
+ * would still let a distributed caller bomb one person with update links.
+ */
+const TARGET_LIMIT = { limit: 3, windowMs: HOUR_MS };
+
+/** Already gated by knowing a valid slug; this bounds guessing at slugs. */
+const UPDATE_LIMIT = { limit: 20, windowMs: HOUR_MS };
+
 export async function POST(request: NextRequest) {
+  const perCaller = checkRateLimit(
+    `presigned-request:${clientIp(request)}`,
+    LINK_REQUEST_LIMIT,
+  );
+  if (!perCaller.ok) return rateLimitResponse(perCaller.retryAfterSeconds);
+
   const bodyOrError = await parseJsonBody(request);
   if (bodyOrError instanceof NextResponse) return bodyOrError;
 
@@ -34,6 +59,17 @@ export async function POST(request: NextRequest) {
       { error: "Email or phone is required" },
       { status: 400 },
     );
+  }
+
+  // Charged before the lookup, so an unknown address costs the same as a known
+  // one and the endpoint can't be used as a cheap membership oracle.
+  for (const identifier of [email, phone]) {
+    if (typeof identifier !== "string" || !identifier.trim()) continue;
+    const perTarget = checkRateLimit(
+      `presigned-target:${normalizeIdentifier(identifier)}`,
+      TARGET_LIMIT,
+    );
+    if (!perTarget.ok) return rateLimitResponse(perTarget.retryAfterSeconds);
   }
 
   try {
@@ -129,6 +165,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const limit = checkRateLimit(`presigned-update:${clientIp(request)}`, UPDATE_LIMIT);
+  if (!limit.ok) return rateLimitResponse(limit.retryAfterSeconds);
+
   const bodyOrError = await parseJsonBody(request);
   if (bodyOrError instanceof NextResponse) return bodyOrError;
 
