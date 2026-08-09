@@ -160,6 +160,17 @@ export async function sendCampaign(
       };
     }
 
+    // Authoritative gate. The caller's payload decides nothing here: only the
+    // record we just read from NocoDB does. A campaign left at Draft (or at
+    // Sending from an interrupted run) is never delivered by accident —
+    // restarting one means flipping it back to Queued deliberately.
+    if (campaign.Status !== "Queued") {
+      console.warn(
+        `[campaigns] refusing to send campaign ${campaignId}: status is ${campaign.Status ?? "unset"}, not Queued`,
+      );
+      return { campaignId, emailsSent: 0, smsSent: 0, skipped: 0, failed: 0 };
+    }
+
     await campaignsDAO.updateStatus(campaign.Id, "Sending", {
       ...(campaign.PublishedAt ? {} : { PublishedAt: new Date().toISOString() }),
     });

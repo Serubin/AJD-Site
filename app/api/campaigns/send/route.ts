@@ -54,11 +54,18 @@ export async function POST(request: NextRequest) {
     (typeof row?.Slug === "string" ? (row.Slug as string) : undefined);
 
   // Only act on Queued campaigns so our own Sending/Sent updates don't loop.
+  // Fail closed on a *missing* status too: this reads the request body, so
+  // treating "absent" as permission would let any caller trigger a send of any
+  // campaign simply by omitting the field. sendCampaign re-checks the stored
+  // record regardless — this is the cheap first gate, not the authority.
   const status =
     (typeof body.status === "string" ? body.status : undefined) ??
     (typeof row?.Status === "string" ? (row.Status as string) : undefined);
-  if (status && status !== "Queued") {
-    return NextResponse.json({ ignored: true, status }, { status: 200 });
+  if (status !== "Queued") {
+    return NextResponse.json(
+      { ignored: true, status: status ?? null },
+      { status: 200 },
+    );
   }
 
   try {

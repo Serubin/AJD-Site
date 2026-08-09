@@ -19,10 +19,31 @@ import {
   handleApiError,
 } from "@/lib/api";
 import { SMS_CONSENT_VERSION } from "@/lib/consent";
+import {
+  checkRateLimit,
+  clientIp,
+  rateLimitResponse,
+  HOUR_MS,
+  MINUTE_MS,
+} from "@/lib/rateLimit";
 
 const log = logger.child({ component: "signup" });
 
+/**
+ * The join-us form calls this on a 400ms debounce as the user types, plus once
+ * more on blur, so the ceiling has to clear a whole signup several times over —
+ * including several people sharing one NAT. It exists to make bulk enumeration
+ * of the member list expensive, not to police the form.
+ */
+const LOOKUP_LIMIT = { limit: 60, windowMs: MINUTE_MS };
+
+/** Signups are rare per person; anything near this is scripted. */
+const SIGNUP_LIMIT = { limit: 10, windowMs: HOUR_MS };
+
 export async function GET(request: NextRequest) {
+  const limit = checkRateLimit(`users-lookup:${clientIp(request)}`, LOOKUP_LIMIT);
+  if (!limit.ok) return rateLimitResponse(limit.retryAfterSeconds);
+
   const { searchParams } = request.nextUrl;
   const email = searchParams.get("email") || undefined;
   const phone = searchParams.get("phone") || undefined;
@@ -47,6 +68,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const limit = checkRateLimit(`users-signup:${clientIp(request)}`, SIGNUP_LIMIT);
+  if (!limit.ok) return rateLimitResponse(limit.retryAfterSeconds);
+
   const bodyOrError = await parseJsonBody(request);
   if (bodyOrError instanceof NextResponse) return bodyOrError;
 
