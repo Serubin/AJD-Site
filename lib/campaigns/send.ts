@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { logger } from "../logger";
 import { sendEmail, sendSms } from "../notifications/transports";
 import { runExclusive } from "../runExclusive";
 import { lazyInit } from "../utils";
@@ -8,6 +9,8 @@ import { composeEmail, composeSms } from "./compose";
 import { getCampaignRecipients, type Recipient } from "./recipients";
 import { loadCampaignTemplates, type CampaignTemplates } from "./templates";
 import type { CampaignRecord } from "./types";
+
+const log = logger.child({ component: "campaigns" });
 
 const getCampaignsDAO = lazyInit(() => new CampaignsDAO());
 const getCampaignSendsDAO = lazyInit(() => new CampaignSendsDAO());
@@ -19,6 +22,8 @@ export interface CampaignSendResult {
   campaignId: number;
   emailsSent: number;
   smsSent: number;
+  emailsFailed: number;
+  smsFailed: number;
   skipped: number;
   failed: number;
 }
@@ -121,13 +126,21 @@ async function deliverOne(
       error: "transport not configured",
     });
   } catch (err) {
+    const channel = recipient.channel === "sms" ? "sms" : "email";
     tally.failed += 1;
+    if (channel === "sms") tally.smsFailed += 1;
+    else tally.emailsFailed += 1;
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[campaigns] delivery failed for user ${userId}:`, err);
+    log.error("campaign delivery failed", {
+      err,
+      campaignId: campaign.Id,
+      userId,
+      channel,
+    });
     await sendsDAO.recordSend({
       campaignId: campaign.Id!,
       userId,
-      channel: recipient.channel === "sms" ? "sms" : "email",
+      channel,
       status: "failed",
       error: message,
     });
@@ -155,6 +168,8 @@ export async function sendCampaign(
         campaignId,
         emailsSent: campaign.EmailsSent ?? 0,
         smsSent: campaign.SmsSent ?? 0,
+        emailsFailed: 0,
+        smsFailed: 0,
         skipped: campaign.Skipped ?? 0,
         failed: campaign.Failed ?? 0,
       };
@@ -165,20 +180,32 @@ export async function sendCampaign(
     // Sending from an interrupted run) is never delivered by accident —
     // restarting one means flipping it back to Queued deliberately.
     if (campaign.Status !== "Queued") {
-      console.warn(
-        `[campaigns] refusing to send campaign ${campaignId}: status is ${campaign.Status ?? "unset"}, not Queued`,
-      );
-      return { campaignId, emailsSent: 0, smsSent: 0, skipped: 0, failed: 0 };
+      log.warn("campaign send refused: status is not Queued", {
+        campaignId,
+        status: campaign.Status ?? "unset",
+      });
+      return {
+        campaignId,
+        emailsSent: 0,
+        smsSent: 0,
+        emailsFailed: 0,
+        smsFailed: 0,
+        skipped: 0,
+        failed: 0,
+      };
     }
 
     await campaignsDAO.updateStatus(campaign.Id, "Sending", {
       ...(campaign.PublishedAt ? {} : { PublishedAt: new Date().toISOString() }),
     });
 
+    const startedAt = Date.now();
     const tally: CampaignSendResult = {
       campaignId,
       emailsSent: 0,
       smsSent: 0,
+      emailsFailed: 0,
+      smsFailed: 0,
       skipped: 0,
       failed: 0,
     };
@@ -210,9 +237,23 @@ export async function sendCampaign(
         Failed: (campaign.Failed ?? 0) + tally.failed,
       });
 
+      log.info("campaign send complete", {
+        campaignId,
+        recipients: recipients.length,
+        pending: pending.length,
+        emailsSent: tally.emailsSent,
+        smsSent: tally.smsSent,
+        emailsFailed: tally.emailsFailed,
+        smsFailed: tally.smsFailed,
+        skipped: tally.skipped,
+        failed: tally.failed,
+        status: finalStatus,
+        durationMs: Date.now() - startedAt,
+      });
+
       return tally;
     } catch (err) {
-      console.error(`[campaigns] send failed for campaign ${campaignId}:`, err);
+      log.error("campaign send failed", { err, campaignId });
       await campaignsDAO.updateStatus(campaign.Id, "Failed");
       throw err;
     }
