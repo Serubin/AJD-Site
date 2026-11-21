@@ -182,7 +182,7 @@ export async function PATCH(request: NextRequest) {
 
   const parsed = joinUsPayloadSchema.safeParse(bodyOrError);
   if (!parsed.success) {
-    const first = parsed.error.errors[0];
+    const first = parsed.error.issues[0];
     return NextResponse.json({ error: first.message }, { status: 400 });
   }
 

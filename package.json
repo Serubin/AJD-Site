@@ -46,7 +46,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.453.0",
     "marked": "^17.0.5",
-    "next": "^15.1.0",
+    "next": "^15.5.29",
     "next-plausible": "^3.12.5",
     "nocodb-sdk": "^0.301.2",
     "react": "^19.0.0",
@@ -60,17 +60,23 @@
     "tailwindcss-animate": "^1.0.7",
     "twilio": "^5.13.1",
     "vaul": "^1.1.2",
-    "yaml": "^2.8.2",
-    "zod": "^3.25.76"
+    "yaml": "^2.8.4",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.15",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20.19.27",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
+    "postcss": "^8.5.33",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.6.3"
+  },
+  "resolutions": {
+    "**/lodash": "^4.18.1",
+    "**/postcss": "^8.5.33",
+    "**/postcss-selector-parser": "^6.1.6",
+    "**/sharp": "^0.35.5"
   }
 }
